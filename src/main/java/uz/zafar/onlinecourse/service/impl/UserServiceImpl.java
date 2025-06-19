@@ -19,6 +19,7 @@ import uz.zafar.onlinecourse.db.repository.*;
 import uz.zafar.onlinecourse.dto.*;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
 import uz.zafar.onlinecourse.dto.form.ChangePasswordForm;
+import uz.zafar.onlinecourse.dto.form.EditProfile;
 import uz.zafar.onlinecourse.dto.form.LoginForm;
 import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
 import uz.zafar.onlinecourse.dto.teacher_dto.res.TeacherDto;
@@ -376,6 +377,62 @@ public class UserServiceImpl implements UserService {
             return new ResponseDto<>(true, users.isEmpty() ? "Users is empty" : "Success", users);
         } catch (Exception e) {
             log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> changeUsername(String newUsername) {
+        try {
+            User currentUser = SecurityHelper.getCurrentUser();
+            if (currentUser == null) {
+                throw new RuntimeException("Current user is null");
+            }
+
+            newUsername = newUsername.toLowerCase();
+
+            Optional<User> existingUser = userRepository.findByUsername(newUsername);
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(currentUser.getId())) {
+                throw new RuntimeException("Username is already in use");
+            }
+
+            currentUser.setUsername(newUsername);
+            userRepository.save(currentUser);
+
+            // JWT token yaratish uchun username kerak
+            String accessToken = jwtService.generateToken(newUsername);
+
+            return new ResponseDto<>(true, "Username changed and new token issued",
+                    LoginResponseDto.builder()
+                            .access_token(accessToken)
+                            .refresh_token(accessToken) // Agar alohida refresh token yo'q bo'lsa, shuni yuboring
+                            .expireDate(jwtExpireDate)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error changing username", e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> changeProfile(EditProfile profile) {
+        try {
+            User user = SecurityHelper.getCurrentUser();
+            if (user == null) {
+                throw new RuntimeException("Current user is null");
+            }
+            Optional<User> eOp = userRepository.findByEmail(profile.getEmail());
+            if (eOp.isPresent() && !eOp.get().getId().equals(user.getId())) {
+                throw new RuntimeException("Email is already in use");
+            }
+            user.setFirstname(profile.getFirstname());
+            user.setLastname(profile.getLastname());
+            user.setEmail(profile.getEmail());
+            return new ResponseDto<>(true, "Ok", mapToUserDto(
+                    userRepository.save(user)
+            ));
+        } catch (Exception e) {
             return new ResponseDto<>(false, e.getMessage());
         }
     }

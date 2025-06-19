@@ -9,6 +9,7 @@ import uz.zafar.onlinecourse.dto.ResponseDto;
 import uz.zafar.onlinecourse.dto.UserResponseDto;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
 import uz.zafar.onlinecourse.dto.form.ChangePasswordForm;
+import uz.zafar.onlinecourse.dto.form.EditProfile;
 import uz.zafar.onlinecourse.dto.form.LoginForm;
 import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
 import uz.zafar.onlinecourse.dto.teacher_dto.res.TeacherDto;
@@ -35,4 +36,7 @@ public interface UserService {
      ResponseDto<List<UserDto>>searchByUsername(String username);
      ResponseDto<List<UserDto>>searchByUsernameAndFirstNameAndLastnameAndEmail(String query);
 
+     ResponseDto<?> changeUsername(String username);
+
+     ResponseDto<?> changeProfile(EditProfile profile);
 }
