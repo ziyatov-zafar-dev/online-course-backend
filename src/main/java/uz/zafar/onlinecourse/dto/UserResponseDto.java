@@ -17,6 +17,6 @@ public class UserResponseDto {
     private String lastname;
     private String email;
     private String username;
-    @JsonProperty(value = "role-list", required = true)
-    private List<RoleDto> roles;
+    @JsonProperty(value = "authorities", required = true)
+    private List<String> roles;
 }

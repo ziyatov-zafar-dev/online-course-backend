@@ -14,8 +14,9 @@ import uz.zafar.onlinecourse.service.UserService;
 
 public class AdminChangePassword {
     private final UserService userService;
-    @PutMapping("{userId}")
-    public ResponseDto<?> changePassword(@RequestBody ChangePasswordForm form, @PathVariable Long userId) {
-        return userService.changePassword(form, userId);
+
+    @PutMapping
+    public ResponseDto<?> changePassword(@RequestBody ChangePasswordForm form) {
+        return userService.changePassword(form);
     }
 }

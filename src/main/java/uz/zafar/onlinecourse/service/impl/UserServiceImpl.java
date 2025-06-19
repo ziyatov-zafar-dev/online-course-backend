@@ -15,11 +15,9 @@ import uz.zafar.onlinecourse.db.domain.Role;
 import uz.zafar.onlinecourse.db.domain.Student;
 import uz.zafar.onlinecourse.db.domain.Teacher;
 import uz.zafar.onlinecourse.db.domain.User;
-import uz.zafar.onlinecourse.db.repository.RoleRepository;
-import uz.zafar.onlinecourse.db.repository.StudentRepository;
-import uz.zafar.onlinecourse.db.repository.TeacherRepository;
-import uz.zafar.onlinecourse.db.repository.UserRepository;
+import uz.zafar.onlinecourse.db.repository.*;
 import uz.zafar.onlinecourse.dto.*;
+import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
 import uz.zafar.onlinecourse.dto.form.ChangePasswordForm;
 import uz.zafar.onlinecourse.dto.form.LoginForm;
 import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
@@ -39,6 +37,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
     @Value("${verified.email.time.milli.second}")
     private Long verifiedMilliSecond;
     private final JwtService jwtService;
@@ -49,7 +48,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final EmailService emailService;
 
-    public UserServiceImpl(AuthenticationManager authenticationManager, UserRepository userRepository, JwtService jwtService, TeacherRepository teacherRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, EmailService emailService, StudentRepository studentRepository) {
+    public UserServiceImpl(AuthenticationManager authenticationManager, UserRepository userRepository, JwtService jwtService, TeacherRepository teacherRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, EmailService emailService, StudentRepository studentRepository, CourseRepository courseRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
@@ -58,6 +57,7 @@ public class UserServiceImpl implements UserService {
         this.roleRepository = roleRepository;
         this.emailService = emailService;
         this.studentRepository = studentRepository;
+        this.courseRepository = courseRepository;
     }
 
 
@@ -115,10 +115,10 @@ public class UserServiceImpl implements UserService {
             if (currentUser == null) {
                 throw new Exception("Current user is null");
             }
-            List<RoleDto> roles = new ArrayList<>();
+            List<String> roles = new ArrayList<>();
             List<Role> rr = userRepository.getRolesFromUser(currentUser.getId());
             for (Role role : rr) {
-                roles.add(new RoleDto(role.getId(), role.getName()));
+                roles.add(role.getName());
             }
             UserResponseDto userResponseDto = new UserResponseDto(currentUser.getFirstname(), currentUser.getLastname(), currentUser.getEmail(), currentUser.getUsername(), roles);
             return new ResponseDto<>(true, "Success", userResponseDto);
@@ -303,13 +303,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseDto<?> changePassword(ChangePasswordForm form, Long userId) {
+    public ResponseDto<?> changePassword(ChangePasswordForm form) {
         try {
-            Optional<User> uOp = userRepository.findById(userId);
-            if (uOp.isEmpty()) {
-                return new ResponseDto<>(false, "User not found", null);
+            User user = SecurityHelper.getCurrentUser();
+            if (user == null) {
+                throw new RuntimeException("Current user is null");
             }
-            User user = uOp.get();
             if (!passwordEncoder.matches(form.getOldPassword(), user.getPassword())) {
                 return new ResponseDto<>(false, "Old password is incorrect", null);
             }
@@ -352,6 +351,7 @@ public class UserServiceImpl implements UserService {
             return new ResponseDto<>(false, e.getMessage());
         }
     }
+
     private UserDto mapToUserDto(User user) {
         return new UserDto(
                 user.getId(),
@@ -361,9 +361,11 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 user.getRoles().stream().map(Role::getName).toList(),
                 user.getCreated(),
-                user.getUpdated()
+                user.getUpdated(),
+                user.isActive()
         );
     }
+
     @Override
     public ResponseDto<List<UserDto>> searchByUsername(String username) {
         try {
@@ -377,5 +379,4 @@ public class UserServiceImpl implements UserService {
             return new ResponseDto<>(false, e.getMessage());
         }
     }
-
 }

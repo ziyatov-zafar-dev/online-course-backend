@@ -35,6 +35,7 @@ public class GroupServiceImpl implements GroupService {
     private final TeacherRepository teacherRepository;
     private final TeacherGroupRepository teacherGroupRepository;
     private final StudentGroupRepository studentGroupRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ResponseDto<GroupTeachersAndStudents> getStudentAndTeachersOfGroup(UUID groupId) {
@@ -208,12 +209,12 @@ public class GroupServiceImpl implements GroupService {
                 return new ResponseDto<>(true, "Joined group", null);
             } else {
                 StudentGroup studentGroup = check.get();
-                if (studentGroup.getActive()){
+                if (studentGroup.getActive()) {
                     studentGroup.setActive(true);
                     studentGroup.setCreated(TimeUtil.currentTashkentTime());
                     StudentGroup save = studentGroupRepository.save(studentGroup);
                     return new ResponseDto<>(true, "Joined group", null);
-                }else throw new Exception("already joined group");
+                } else throw new Exception("already joined group");
             }
         } catch (Exception e) {
             log.error(e);
@@ -225,9 +226,9 @@ public class GroupServiceImpl implements GroupService {
     public ResponseDto<?> leftGroup(UUID groupId, Long studentId) {
         try {
             Optional<StudentGroup> check = studentGroupRepository.checkStudentGroup(studentId, groupId);
-            if (check.isEmpty())throw new Exception("Already left group");
+            if (check.isEmpty()) throw new Exception("Already left group");
             StudentGroup studentGroup = check.get();
-            if (!studentGroup.getActive()){
+            if (!studentGroup.getActive()) {
                 throw new Exception("Already left group");
             }
             studentGroup.setActive(false);
@@ -238,4 +239,91 @@ public class GroupServiceImpl implements GroupService {
             return new ResponseDto<>(false, e.getMessage());
         }
     }
+
+    @Override
+    public ResponseDto<?> findAllByStudentId(Long studentId, int page, int size) {
+        try {
+            Optional<User> uOp = userRepository.findById(studentId);
+            if(uOp.isEmpty())throw new Exception("Teacher not found");
+            studentId =  uOp.get().getStudent().getId();
+            Page<Group> result = groupRepository.findAllByStudentId(studentId, PageRequest.of(page, size));
+
+            List<GroupDto> dtoList = result.getContent().stream().map(group -> {
+                CourseDto courseDto = null;
+                if (group.getCourse() != null) {
+                    courseDto = CourseDto.builder()
+                            .pkey(group.getCourse().getId())
+                            .name(group.getCourse().getName())
+                            .description(group.getCourse().getDescription())
+                            .telegramChannel(group.getCourse().getTelegramChannel())
+                            .hasTelegramChannel(group.getCourse().getHasTelegramChannel())
+                            .createdAt(courseRepository.getCourseOfCreatedDate(group.getCourse().getId()).orElse(null))
+                            .updatedAt(courseRepository.getCourseOfUpdatedDate(group.getCourse().getId()).orElse(null))
+                            .build();
+                }
+
+                return GroupDto.builder()
+                        .pkey(group.getId())
+                        .name(group.getName())
+                        .description(group.getDescription())
+                        .telegramChannel(group.getTelegramChannel())
+                        .hasTelegramChannel(group.getHasTelegramChannel())
+                        .course(courseDto)
+                        .created(groupRepository.getGroupOfCreatedDate(group.getId()))
+                        .updated(groupRepository.getGroupOfUpdatedDate(group.getId()))
+                        .build();
+            }).toList();
+
+            Page<GroupDto> res = new PageImpl<>(dtoList, result.getPageable(), result.getTotalElements());
+
+            return new ResponseDto<>(true, "Success", res);
+        } catch (Exception e) {
+            log.error("Error in findAllByTeacherId: ", e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> findAllByTeacherId(Long teacherId, int page, int size) {
+        try {
+            Optional<User> uOp = userRepository.findById(teacherId);
+            if(uOp.isEmpty())throw new Exception("Teacher not found");
+            teacherId =  uOp.get().getTeacher().getId();
+            Page<Group> result = groupRepository.findAllByTeacherId(teacherId, PageRequest.of(page, size));
+
+            List<GroupDto> dtoList = result.getContent().stream().map(group -> {
+                CourseDto courseDto = null;
+                if (group.getCourse() != null) {
+                    courseDto = CourseDto.builder()
+                            .pkey(group.getCourse().getId())
+                            .name(group.getCourse().getName())
+                            .description(group.getCourse().getDescription())
+                            .telegramChannel(group.getCourse().getTelegramChannel())
+                            .hasTelegramChannel(group.getCourse().getHasTelegramChannel())
+                            .createdAt(courseRepository.getCourseOfCreatedDate(group.getCourse().getId()).orElse(null))
+                            .updatedAt(courseRepository.getCourseOfUpdatedDate(group.getCourse().getId()).orElse(null))
+                            .build();
+                }
+
+                return GroupDto.builder()
+                        .pkey(group.getId())
+                        .name(group.getName())
+                        .description(group.getDescription())
+                        .telegramChannel(group.getTelegramChannel())
+                        .hasTelegramChannel(group.getHasTelegramChannel())
+                        .course(courseDto)
+                        .created(groupRepository.getGroupOfCreatedDate(group.getId()))
+                        .updated(groupRepository.getGroupOfUpdatedDate(group.getId()))
+                        .build();
+            }).toList();
+
+            Page<GroupDto> res = new PageImpl<>(dtoList, result.getPageable(), result.getTotalElements());
+
+            return new ResponseDto<>(true, "Success", res);
+        } catch (Exception e) {
+            log.error("Error in findAllByTeacherId: ", e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
 }

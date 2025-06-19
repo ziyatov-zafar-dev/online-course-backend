@@ -33,6 +33,15 @@ public class TeacherGroupRestController {
         return ResponseEntity.ok(groupService.getAllByCourseId(page, size, courseId));
     }
 
+    @GetMapping("teacher-groups/{teacherId}")
+    public ResponseEntity<?> findAllByTeacherId(
+            @PathVariable Long teacherId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return ResponseEntity.ok(groupService.findAllByTeacherId(teacherId, page, size));
+    }
+
     @PostMapping("add-group")
     public ResponseEntity<?> addGroup(@RequestBody AddGroupDto group) {
         return ResponseEntity.ok(groupService.addGroup(group));
@@ -42,6 +51,7 @@ public class TeacherGroupRestController {
     public ResponseEntity<?> editGroup(@RequestBody EditGroupDto group, @PathVariable UUID groupId) {
         return ResponseEntity.ok(groupService.editGroup(groupId, group));
     }
+
     @DeleteMapping("delete-group/{groupId}")
     public ResponseEntity<?> deleteGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(groupService.deleteGroup(groupId));

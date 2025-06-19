@@ -14,9 +14,9 @@ import uz.zafar.onlinecourse.service.UserService;
 @Tag(name = "Teacher Change Password Controller", description = "Teacher paneli uchun parollar bilan ishlash API'lari")
 public class TeacherChangePassword {
     private final UserService userService;
-    @PutMapping("{userId}")
+    @PutMapping
     @Operation(summary = "change password" , description = "Parolni o'zgartirish uchun API")
-    public ResponseDto<?> changePassword(@RequestBody ChangePasswordForm form, @PathVariable Long userId) {
-        return userService.changePassword(form, userId);
+    public ResponseDto<?> changePassword(@RequestBody ChangePasswordForm form) {
+        return userService.changePassword(form);
     }
 }

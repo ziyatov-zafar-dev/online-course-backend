@@ -10,6 +10,7 @@ import uz.zafar.onlinecourse.dto.user_dto.res.UserDto;
 import uz.zafar.onlinecourse.service.UserService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/admin/user")
@@ -66,4 +67,5 @@ public class AdminUserRestController {
     public ResponseDto<List<UserDto>> searchByUsernameAndFirstnameAndLastnameAndEmail(@RequestParam String query) {
         return userService.searchByUsernameAndFirstNameAndLastnameAndEmail(query);
     }
+
 }

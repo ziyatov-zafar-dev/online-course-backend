@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import uz.zafar.onlinecourse.dto.LoginResponseDto;
 import uz.zafar.onlinecourse.dto.ResponseDto;
 import uz.zafar.onlinecourse.dto.UserResponseDto;
+import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
 import uz.zafar.onlinecourse.dto.form.ChangePasswordForm;
 import uz.zafar.onlinecourse.dto.form.LoginForm;
 import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
@@ -28,7 +29,7 @@ public interface UserService {
      ResponseDto<?> signUp(SignUpForm form) ;
      ResponseDto<Void> verifyCode(String code);
      ResponseDto<TeacherDto>addTeacher(SignUpForm form);
-     ResponseDto<?>changePassword(ChangePasswordForm form, Long userId);
+     ResponseDto<?>changePassword(ChangePasswordForm form);
 
      ResponseDto<UserDto> findByUsername(String username);
      ResponseDto<List<UserDto>>searchByUsername(String username);

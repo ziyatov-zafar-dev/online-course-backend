@@ -20,4 +20,5 @@ public class UserDto {
     private List<String> role;
     private Date created;
     private Date updated;
+    private Boolean active;
 }

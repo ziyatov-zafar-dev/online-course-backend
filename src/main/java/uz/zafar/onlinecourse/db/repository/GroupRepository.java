@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import uz.zafar.onlinecourse.db.domain.*;
 import uz.zafar.onlinecourse.dto.date.DateDto;
+import uz.zafar.onlinecourse.dto.group_dto.res.GroupDto;
 import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
 import uz.zafar.onlinecourse.dto.teacher_dto.res.TeacherDto;
 
@@ -73,4 +74,25 @@ public interface GroupRepository extends JpaRepository<Group, UUID> {
                         order by 1;
             """, nativeQuery = true)
     List<StudentDto> getAllByStudentsOfGroup(@Param("group_id") UUID groupId);
+
+    @Query(nativeQuery = true, value = """
+            SELECT g.*
+            FROM groups g
+            INNER JOIN teacher_groups tg ON tg.group_id = g.id
+            INNER JOIN teachers t ON t.id = tg.teacher_id
+            INNER JOIN users u ON u.teacher_id = t.id
+            WHERE t.id = :teacherId
+            """)
+    Page<Group> findAllByTeacherId(@Param("teacherId") Long teacherId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = """
+            SELECT g.*       
+            FROM groups g
+            INNER JOIN student_groups sg ON sg.group_id = g.id
+            INNER JOIN students s ON s.id = sg.student_id
+            INNER JOIN users u ON u.student_id = t.id
+            WHERE t.id = :studentId
+            """)
+    Page<Group> findAllByStudentId(@Param("studentId") Long studentId, Pageable pageable);
+
 }

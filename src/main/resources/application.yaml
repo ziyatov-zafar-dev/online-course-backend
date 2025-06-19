@@ -2,29 +2,11 @@ spring:
   application:
     name: online-course
 #
-#  datasource:
-#    driver-class-name: org.postgresql.Driver
-#    url: jdbc:postgresql://127.0.0.1:5432/a
-#    username: postgres
-#    password: 122333
-#
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    generate-ddl: true
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#        enable_lazy_load_no_trans: true
-#  servlet:
-#    multipart:
-#      max-file-size: 4096MB
-#      max-request-size: 4096MB
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://dpg-d0rv1g63jp1c73e5da70-a.oregon-postgres.render.com:5432/online_course_db_a0js
-    username: postgresdb
-    password: JcpZAFKYWGV6Na5rwPtQgKMGYNp45zmZ
+    url: jdbc:postgresql://127.0.0.1:5432/online-course
+    username: postgres
+    password: 122333
 
   jpa:
     hibernate:
@@ -34,11 +16,29 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         enable_lazy_load_no_trans: true
-
   servlet:
     multipart:
       max-file-size: 4096MB
       max-request-size: 4096MB
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://dpg-d0rv1g63jp1c73e5da70-a.oregon-postgres.render.com:5432/online_course_db_a0js
+#    username: postgresdb
+#    password: JcpZAFKYWGV6Na5rwPtQgKMGYNp45zmZ
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    generate-ddl: true
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        enable_lazy_load_no_trans: true
+#
+#  servlet:
+#    multipart:
+#      max-file-size: 4096MB
+#      max-request-size: 4096MB
 
   mail:
     host: smtp.gmail.com

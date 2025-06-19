@@ -28,4 +28,7 @@ public interface GroupService {
     ResponseDto<?> joinGroup(UUID groupId, Long studentId);
 
     ResponseDto<?> leftGroup(UUID groupId, Long studentId);
+    ResponseDto<?>findAllByTeacherId(Long teacherId,int page,int size);
+
+    ResponseDto<?> findAllByStudentId(Long studentId, int page, int size);
 }

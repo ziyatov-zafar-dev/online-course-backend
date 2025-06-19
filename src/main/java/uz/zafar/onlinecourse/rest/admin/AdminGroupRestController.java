@@ -46,4 +46,20 @@ public class AdminGroupRestController {
     public ResponseEntity<ResponseDto<?>> getStudentAndTeachersOfGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(groupService.getStudentAndTeachersOfGroup(groupId));
     }
+        @GetMapping("teacher-groups/{teacherId}")
+    public ResponseEntity<?> findAllByTeacherId(
+            @PathVariable Long teacherId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return ResponseEntity.ok(groupService.findAllByTeacherId(teacherId,page,size));
+    }
+    @GetMapping("student-groups/{studentId}")
+    public ResponseEntity<?> findAllByStudentId(
+            @PathVariable Long studentId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return ResponseEntity.ok(groupService.findAllByStudentId(studentId,page,size));
+    }
 }
