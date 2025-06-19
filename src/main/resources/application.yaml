@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: online-course
+#
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://127.0.0.1:5432/a
+#    username: postgres
+#    password: 122333
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    generate-ddl: true
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        enable_lazy_load_no_trans: true
+#  servlet:
+#    multipart:
+#      max-file-size: 4096MB
+#      max-request-size: 4096MB
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://dpg-d0rv1g63jp1c73e5da70-a.oregon-postgres.render.com:5432/online_course_db_a0js
+    username: postgresdb
+    password: JcpZAFKYWGV6Na5rwPtQgKMGYNp45zmZ
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+
+  servlet:
+    multipart:
+      max-file-size: 4096MB
+      max-request-size: 4096MB
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ziyatovzafar98@gmail.com
+    password: pdsd bojp pnpq dmjn
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: mavlonovbaxtiyor1983@gmail.com
+#    password: zigd hcyp infw vned
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+server:
+  port: 8090
+  # servlet:
+  #   context-path: /api
+
+jwt:
+  secret:
+    key: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+  expire:
+    date: 3600000
+
+lesson:
+  video:
+    base:
+      url: /files/lessons
+
+homework:
+  video:
+    base:
+      url: /files/homeworks
+  # submission:
+  #   video:
+  #     base:
+  #       url: /files/homework-submission
+
+verified:
+  email:
+    time:
+      milli:
+        second: 120_000 # 2daqiqa
