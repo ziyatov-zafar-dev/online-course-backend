@@ -23,6 +23,7 @@ public class Group {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String telegramChannel;
     private Boolean hasTelegramChannel;

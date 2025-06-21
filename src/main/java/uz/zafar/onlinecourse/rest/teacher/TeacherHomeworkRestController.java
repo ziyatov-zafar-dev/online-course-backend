@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +36,7 @@ public class TeacherHomeworkRestController {
         return ResponseEntity.ok(homeworkService.findAllByLessonId(lessonId, page, size));
     }
 
-    @PostMapping("add-homework")
+    @PostMapping(value = "add-homework",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(description = """
             Deadline ni yyyy-MM-dd'T'HH:mm formatda kiriting misol uchun deadline=2025-09-01T23:59""")
     public ResponseEntity<?> addHomework(

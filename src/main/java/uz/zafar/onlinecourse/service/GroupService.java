@@ -31,4 +31,14 @@ public interface GroupService {
     ResponseDto<?>findAllByTeacherId(Long teacherId,int page,int size);
 
     ResponseDto<?> findAllByStudentId(Long studentId, int page, int size);
+
+    ResponseDto<?> getAllGroups(int page, int size);
+
+    ResponseDto<?> getGroupStudents(UUID groupId);
+
+    ResponseDto<?> isJoinGroup(UUID groupId, Long studentId);
+
+    ResponseDto<?> groupInformation(UUID groupId);
+
+    ResponseDto<?> myGroups(int page, int size);
 }

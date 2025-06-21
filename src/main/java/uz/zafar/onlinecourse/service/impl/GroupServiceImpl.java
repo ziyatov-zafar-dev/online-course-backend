@@ -10,12 +10,14 @@ import uz.zafar.onlinecourse.db.domain.*;
 import uz.zafar.onlinecourse.db.repository.*;
 import uz.zafar.onlinecourse.dto.ResponseDto;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
+import uz.zafar.onlinecourse.dto.date.DateDto;
 import uz.zafar.onlinecourse.dto.group_dto.req.AddGroupDto;
 import uz.zafar.onlinecourse.dto.group_dto.req.EditGroupDto;
-import uz.zafar.onlinecourse.dto.group_dto.res.GroupAndTeachers;
-import uz.zafar.onlinecourse.dto.group_dto.res.GroupDto;
-import uz.zafar.onlinecourse.dto.group_dto.res.GroupTeachersAndStudents;
+import uz.zafar.onlinecourse.dto.group_dto.res.*;
+import uz.zafar.onlinecourse.dto.lesson_dto.res.LessonDto;
+import uz.zafar.onlinecourse.dto.student_dto.res.StudentDto;
 import uz.zafar.onlinecourse.dto.teacher_dto.res.TeacherDto;
+import uz.zafar.onlinecourse.helper.SecurityHelper;
 import uz.zafar.onlinecourse.helper.TimeUtil;
 import uz.zafar.onlinecourse.service.CourseService;
 import uz.zafar.onlinecourse.service.GroupService;
@@ -36,6 +38,8 @@ public class GroupServiceImpl implements GroupService {
     private final TeacherGroupRepository teacherGroupRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
+    private final LessonRepository lessonRepository;
+    private final LessonFileRepository lessonFileRepository;
 
     @Override
     public ResponseDto<GroupTeachersAndStudents> getStudentAndTeachersOfGroup(UUID groupId) {
@@ -66,6 +70,33 @@ public class GroupServiceImpl implements GroupService {
             groupAndTeachers.setTeachers(teachers);
             groupAndTeachers.setGroup(check.getData());
             return new ResponseDto<>(true, "Success", groupAndTeachers);
+        } catch (Exception e) {
+            log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> getAllGroups(int page, int size) {
+        try {
+
+            Page<Group> groups = groupRepository.findAll(PageRequest.of(page, size));
+            List<GroupDto> content = new ArrayList<>();
+            for (Group group : groups.getContent()) {
+                ResponseDto<CourseDto> checkCourse = courseService.getCourseById(group.getCourse().getId());
+                content.add(new GroupDto(
+                        group.getId(),
+                        group.getName(),
+                        group.getDescription(),
+                        group.getTelegramChannel(),
+                        group.getHasTelegramChannel(),
+                        checkCourse.getData(),
+                        groupRepository.getGroupOfCreatedDate(group.getId()),
+                        groupRepository.getGroupOfUpdatedDate(group.getId())
+                ));
+            }
+            Page<GroupDto> res = new PageImpl<>(content, PageRequest.of(page, size), groups.getTotalElements());
+            return new ResponseDto<>(true, "Success", res);
         } catch (Exception e) {
             log.error(e);
             return new ResponseDto<>(false, e.getMessage());
@@ -168,6 +199,7 @@ public class GroupServiceImpl implements GroupService {
                 throw new Exception("Not found group id: " + groupId);
             Group group = gOp.get();
             group.setName(UUID.randomUUID() + group.getName() + groupId);
+            group.setActive(false);
             groupRepository.save(group);
             return new ResponseDto<>(true, "Success");
         } catch (Exception e) {
@@ -244,8 +276,8 @@ public class GroupServiceImpl implements GroupService {
     public ResponseDto<?> findAllByStudentId(Long studentId, int page, int size) {
         try {
             Optional<User> uOp = userRepository.findById(studentId);
-            if(uOp.isEmpty())throw new Exception("Teacher not found");
-            studentId =  uOp.get().getStudent().getId();
+            if (uOp.isEmpty()) throw new Exception("Teacher not found");
+            studentId = uOp.get().getStudent().getId();
             Page<Group> result = groupRepository.findAllByStudentId(studentId, PageRequest.of(page, size));
 
             List<GroupDto> dtoList = result.getContent().stream().map(group -> {
@@ -287,8 +319,8 @@ public class GroupServiceImpl implements GroupService {
     public ResponseDto<?> findAllByTeacherId(Long teacherId, int page, int size) {
         try {
             Optional<User> uOp = userRepository.findById(teacherId);
-            if(uOp.isEmpty())throw new Exception("Teacher not found");
-            teacherId =  uOp.get().getTeacher().getId();
+            if (uOp.isEmpty()) throw new Exception("Teacher not found");
+            teacherId = uOp.get().getTeacher().getId();
             Page<Group> result = groupRepository.findAllByTeacherId(teacherId, PageRequest.of(page, size));
 
             List<GroupDto> dtoList = result.getContent().stream().map(group -> {
@@ -326,4 +358,92 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
+    @Override
+    public ResponseDto<?> getGroupStudents(UUID groupId) {
+        try {
+            return new ResponseDto<>(true, "Success", groupRepository.getGroupStudents());
+        } catch (Exception e) {
+            log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> isJoinGroup(UUID groupId, Long studentId) {
+        try {
+            long count = groupRepository.isJoinGroup(groupId, studentId).size();
+            if (count < 1) throw new Exception("Group not found");
+            return new ResponseDto<>(true, "Success", true);
+        } catch (Exception e) {
+            log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> groupInformation(UUID groupId) {
+        try {
+            return new ResponseDto<>(true, "Success", groupRepository.information(groupId));
+        } catch (Exception e) {
+            log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> myGroups(int page, int size) {
+        try {
+            User user = SecurityHelper.getCurrentUser();
+            if (user == null) throw new Exception("User not found");
+            Student student = user.getStudent();
+            if (student == null) throw new Exception("User not found");
+            List<Group> groups = groupRepository.getGroupsStudent(student.getId());
+            List<GroupLessonsAndGroupDto> res = new ArrayList<>();
+            for (Group group : groups) {
+                Optional<Course> courseOptional = courseRepository.findByCourseId(group.getCourse().getId());
+                if (courseOptional.isEmpty()) continue;
+                Course course = courseOptional.get();
+                Optional<DateDto> cOp = courseRepository.getCourseOfCreatedDate(course.getId());
+                Optional<DateDto> uOp = courseRepository.getCourseOfCreatedDate(course.getId());
+                if (cOp.isEmpty()) continue;
+                if (uOp.isEmpty()) continue;
+                GroupDto groupDto = new GroupDto(
+                        group.getId(),
+                        group.getName(),
+                        group.getDescription(),
+                        group.getTelegramChannel(),
+                        group.getHasTelegramChannel(),
+                        new CourseDto(
+                                course.getId(),
+                                course.getName(),
+                                course.getDescription(),
+                                course.getTelegramChannel(),
+                                course.getHasTelegramChannel(),
+                                cOp.get(),
+                                uOp.get()
+                        ),
+                        groupRepository.getGroupOfCreatedDate(group.getId()),
+                        groupRepository.getGroupOfUpdatedDate(group.getId())
+                );
+
+                List<LessonDto> lessons = new ArrayList<>();
+                for (Lesson lesson : group.getLessons()) {
+                    lessons.add(new LessonDto(
+                            lesson.getId(),
+                            lesson.getTitle(),
+                            lesson.getDescription(),
+                            lessonRepository.getLessonCreatedDate(lesson.getId()),
+                            lessonRepository.getLessonUpdatedDate(lesson.getId()),
+                            group.getId(),
+                            lessonFileRepository.getFilesFromLesson(lesson.getId())
+                    ));
+                }
+                res.add(new GroupLessonsAndGroupDto(lessons, groupDto));
+            }
+            return new ResponseDto<>(true, "Success", res);
+        } catch (Exception e) {
+            log.error(e);
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
 }

@@ -3,6 +3,7 @@ package uz.zafar.onlinecourse.rest.teacher;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class TeacherLessonRestController {
     private final LessonService lessonService;
 
-    @PostMapping("add-lesson")
+    @PostMapping(value = "add-lesson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addLesson(
             @RequestParam("groupId") UUID groupId,
             @RequestParam("title") String title,
@@ -42,7 +43,7 @@ public class TeacherLessonRestController {
         return ResponseEntity.ok(lessonService.addLesson(lesson, request));
     }
 
-    @PostMapping("add-file-to-lesson/{lessonId}")
+    @PostMapping(value="add-file-to-lesson/{lessonId}" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addFileToLesson(
             @PathVariable UUID lessonId,
             @RequestParam("file") MultipartFile file,

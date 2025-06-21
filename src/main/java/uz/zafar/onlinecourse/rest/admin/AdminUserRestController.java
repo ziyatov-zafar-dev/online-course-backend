@@ -68,4 +68,9 @@ public class AdminUserRestController {
         return userService.searchByUsernameAndFirstNameAndLastnameAndEmail(query);
     }
 
+    @GetMapping("teachers")
+    public ResponseEntity<?> teachers() {
+        return ResponseEntity.ok(userService.getAllTeachers());
+    }
+
 }

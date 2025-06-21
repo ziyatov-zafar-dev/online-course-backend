@@ -18,6 +18,7 @@ import uz.zafar.onlinecourse.db.repository.HomeworkRepository;
 import uz.zafar.onlinecourse.db.repository.LessonRepository;
 import uz.zafar.onlinecourse.db.repository.TypeRepository;
 import uz.zafar.onlinecourse.dto.ResponseDto;
+import uz.zafar.onlinecourse.dto.ResponseDtoNotData;
 import uz.zafar.onlinecourse.dto.homework_dto.req.AddHomeworkDto;
 import uz.zafar.onlinecourse.dto.homework_dto.req.AddHomeworkFileDto;
 import uz.zafar.onlinecourse.dto.homework_dto.req.EditHomeworkDto;
@@ -295,7 +296,7 @@ public class HomeworkServiceImpl implements HomeworkService {
 
         } catch (Exception e) {
             log.error("Xatolik: ", e);
-            return ResponseEntity.ok(new ResponseDto<>(false, e.getMessage()));
+            return ResponseEntity.ok(new ResponseDtoNotData(false, e.getMessage()));
         }
     }
 

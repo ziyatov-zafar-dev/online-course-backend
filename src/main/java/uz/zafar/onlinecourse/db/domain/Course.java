@@ -24,6 +24,7 @@ public class Course {
     private UUID id;
     private String name;
     private String deletedName;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String telegramChannel;
     private Boolean hasTelegramChannel;

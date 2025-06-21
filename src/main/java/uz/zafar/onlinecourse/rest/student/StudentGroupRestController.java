@@ -40,4 +40,23 @@ public class StudentGroupRestController {
     public ResponseEntity<?> left_group(@RequestParam UUID groupId, @RequestParam Long studentId) {
         return ResponseEntity.ok(groupService.leftGroup(groupId, studentId));
     }
+
+
+    @PostMapping("is-join-group")
+    @Operation(summary = "is join group", description = "Guruhga qo'shilganmi ?")
+    public ResponseEntity<?> isJoinGroup(@RequestParam UUID groupId, @RequestParam Long studentId) {
+        return ResponseEntity.ok(groupService.isJoinGroup(groupId, studentId));
+    }
+
+    @GetMapping("group-information/{groupId}")
+    @Operation(summary = "group information", description = "Guruh haqidagi malumotlar")
+    public ResponseEntity<?> groupInformation(@PathVariable UUID groupId) {
+        return ResponseEntity.ok(groupService.groupInformation(groupId));
+    }
+
+    @GetMapping("my-groups")
+    @Operation(summary = "group information", description = "Guruh haqidagi malumotlar")
+    public ResponseEntity<?> myGroups(@RequestParam int page, @RequestParam int size) {
+        return ResponseEntity.ok(groupService.myGroups(page, size));
+    }
 }

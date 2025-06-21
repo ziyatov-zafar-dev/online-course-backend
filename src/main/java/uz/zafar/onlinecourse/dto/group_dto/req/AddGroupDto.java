@@ -1,5 +1,6 @@
 package uz.zafar.onlinecourse.dto.group_dto.req;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -18,5 +19,6 @@ public class AddGroupDto {
     private Boolean hasTelegramChannel;
     @JsonProperty("course-pkey")
     private UUID coursePkey;
+    @JsonIgnore
     private Long teacherId;
 }

@@ -39,4 +39,6 @@ public interface UserService {
      ResponseDto<?> changeUsername(String username);
 
      ResponseDto<?> changeProfile(EditProfile profile);
+
+     ResponseDto<?> getAllTeachers();
 }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -118,10 +119,19 @@ public class UserServiceImpl implements UserService {
             }
             List<String> roles = new ArrayList<>();
             List<Role> rr = userRepository.getRolesFromUser(currentUser.getId());
+            boolean student = false, teacher = false;
             for (Role role : rr) {
+                if (role.getName().equals("ROLE_STUDENT") && !student) {
+                    student = true;
+                }
+                if (role.getName().equals("ROLE_TEACHER") && !teacher) {
+                    teacher = true;
+                }
                 roles.add(role.getName());
             }
             UserResponseDto userResponseDto = new UserResponseDto(currentUser.getFirstname(), currentUser.getLastname(), currentUser.getEmail(), currentUser.getUsername(), roles);
+            if (student) userResponseDto.setStudentId(currentUser.getStudent().getId());
+            if (teacher) userResponseDto.setTeacherId(currentUser.getTeacher().getId());
             return new ResponseDto<>(true, "Success", userResponseDto);
         } catch (Exception e) {
             log.error(e);
@@ -433,6 +443,24 @@ public class UserServiceImpl implements UserService {
                     userRepository.save(user)
             ));
         } catch (Exception e) {
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseDto<?> getAllTeachers() {
+        try {
+            List<Teacher> teachers = teacherRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+            List<TeacherDto> list = new ArrayList<>();
+            for (Teacher teacher : teachers) {
+                TeacherDto tOp = teacherRepository.findTeacherById(teacher.getId());
+                if (tOp != null) {
+                    list.add(tOp);
+                }
+            }
+            return new ResponseDto<>(true, "Success", list);
+        } catch (Exception e) {
+            log.error(e);
             return new ResponseDto<>(false, e.getMessage());
         }
     }

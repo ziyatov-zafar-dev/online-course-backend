@@ -96,6 +96,8 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- Redis -->
+
     </dependencies>
 
     <build>

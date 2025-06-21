@@ -16,6 +16,7 @@ import uz.zafar.onlinecourse.dto.course_dto.req.EditCourseDto;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDto;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDtoResponse;
 import uz.zafar.onlinecourse.dto.date.DateDto;
+import uz.zafar.onlinecourse.dto.teacher_dto.res.TeacherDto;
 import uz.zafar.onlinecourse.helper.SecurityHelper;
 import uz.zafar.onlinecourse.helper.TimeUtil;
 import uz.zafar.onlinecourse.service.AuthService;
@@ -242,5 +243,19 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-
+    @Override
+    public ResponseDto<?> getCourseTeacher(UUID courseId) {
+        try {
+            Optional<Course> cOp = courseRepository.findById(courseId);
+            if (cOp.isEmpty()) {
+                throw new Exception("Not found course id: " + courseId);
+            }
+            Course course = cOp.get();
+            Teacher teacher = teacherCourseRepository.getCourseTeacher(course.getId());
+            return new ResponseDto<>(true, "Ok", teacherRepository.findTeacherById(teacher.getId()));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseDto<>(false, e.getMessage());
+        }
+    }
 }

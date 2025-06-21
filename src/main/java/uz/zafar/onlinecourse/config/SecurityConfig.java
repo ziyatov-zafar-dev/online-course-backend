@@ -50,7 +50,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/api/user-info/get-user")
+                        .requestMatchers("/api/user-info/get-user" , "/api/sessions/**")
                         .hasAnyRole("ADMIN", "TEACHER", "STUDENT", "GUEST")
                         .requestMatchers("/api/admin/change-password/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/profile/**").hasRole("ADMIN")

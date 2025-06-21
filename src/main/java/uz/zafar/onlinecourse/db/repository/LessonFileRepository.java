@@ -11,7 +11,8 @@ import java.util.UUID;
 
 public interface LessonFileRepository extends JpaRepository<LessonFile, UUID> {
     @Query(value = """
-            select lf.file_url as fileUrl,
+            select  lf.id as fileId,
+                            lf.file_url as fileUrl,
                    lf.file_name as fileName,
                    t.name as typeName,
                    t.id as typeId,

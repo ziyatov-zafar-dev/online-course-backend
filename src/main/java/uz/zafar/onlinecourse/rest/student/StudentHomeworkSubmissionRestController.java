@@ -3,6 +3,7 @@ package uz.zafar.onlinecourse.rest.student;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public class StudentHomeworkSubmissionRestController {
     private final HomeworkSubmissionService homeworkSubmissionService;
 
-    @PostMapping("add-homework-submission")
+    @PostMapping(value = "add-homework-submission")
     public ResponseEntity<?> addHomeworkSubmission(
             @RequestParam MultipartFile file,
             @RequestParam Long studentId,
@@ -31,11 +32,10 @@ public class StudentHomeworkSubmissionRestController {
         homeworkSubmission.setHomeworkId(homeworkId);
         homeworkSubmission.setFile(file);
         homeworkSubmission.setTypeId(typeId);
-
         return ResponseEntity.ok(homeworkSubmissionService.addHomeworkSubmission(homeworkSubmission, request));
     }
 
-    @GetMapping("add-homework-submission")
+    @GetMapping("get-homework-submission")
     public ResponseEntity<?> getHomeworkSubmissionByHomeworkIdAndStudentId(
             @RequestParam UUID homeworkId, @RequestParam Long studentID
     ) throws Exception {

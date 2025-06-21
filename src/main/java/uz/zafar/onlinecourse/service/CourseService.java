@@ -26,4 +26,6 @@ public interface CourseService {
     ResponseDto<?> editCourse(UUID pkey, EditCourseDto course);
 
     ResponseDto<List<CourseDtoResponse>> getTeacherCourses(Long teacherId,boolean isDeleted);
+
+    ResponseDto<?> getCourseTeacher(UUID courseId);
 }

@@ -52,6 +52,12 @@ public class AdminCourseRestController {
         return ResponseEntity.ok(courseService.deleteCourse(courseId));
     }
 
+
+    @GetMapping("get-course-teacher/{courseId}")
+    public ResponseEntity<?> getCourseTeacher(@PathVariable UUID courseId) {
+        return ResponseEntity.ok(courseService.getCourseTeacher(courseId));
+    }
+
     @PutMapping("edit-course/{courseId}")
     public ResponseEntity<?> editCourse(@PathVariable UUID courseId, @RequestBody EditCourseDto course) {
         return ResponseEntity.ok(courseService.editCourse(courseId, course));

@@ -2,6 +2,9 @@ package uz.zafar.onlinecourse.db.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import uz.zafar.onlinecourse.db.domain.Course;
+import uz.zafar.onlinecourse.db.domain.Teacher;
 import uz.zafar.onlinecourse.db.domain.TeacherCourse;
 import uz.zafar.onlinecourse.dto.course_dto.res.CourseDtoResponse;
 
@@ -9,7 +12,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TeacherCourseRepository extends JpaRepository<TeacherCourse, UUID> {
-
 
 
     List<TeacherCourse> findAllByCourseId(UUID courseId);
@@ -38,6 +40,7 @@ public interface TeacherCourseRepository extends JpaRepository<TeacherCourse, UU
                     ORDER BY createdAt"""
     )
     List<CourseDtoResponse> getTeacherCourses(Long teacherId);
+
     @Query(
             nativeQuery = true,
             value = """
@@ -62,6 +65,17 @@ public interface TeacherCourseRepository extends JpaRepository<TeacherCourse, UU
                     ORDER BY createdAt"""
     )
     List<CourseDtoResponse> getTeacherDeletedCourses(Long teacherId);
+
+    @Query(
+            value = """
+                    SELECT t.*
+                    from teacher_courses  tc 
+                    inner join courses c on tc.course_id=c.id
+                    inner join teachers t on t.id=tc.teacher_id
+                    where c.id=:courseId   and tc.active=true                
+                    """, nativeQuery = true
+    )
+    Teacher getCourseTeacher(@Param("courseId") UUID courseId);
 
 
 }
