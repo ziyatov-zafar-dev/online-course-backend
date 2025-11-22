@@ -6,7 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
+//@Builder
 public class ChangePasswordForm {
     private String oldPassword;
     private String newPassword;
