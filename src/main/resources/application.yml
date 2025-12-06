@@ -1,0 +1,119 @@
+sendgrid:
+  api-key: ${SENDGRID_API_KEY}
+spring:
+  application:
+    name: CodeByZ
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:5432/newdb
+    #    url: jdbc:postgresql://127.0.0.1:5432/codebyzplatform
+    username: postgres
+    password: 122333
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+        format_sql: true
+        show_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 300MB
+      max-request-size: 300MB
+
+  #  mail:
+  #    host: smtp.gmail.com
+  #    port: 587
+  #    username: codebyzplatform@gmail.com
+  #    password: yfof ldkg jmqh jjqr
+  #    properties:
+  #      mail:
+  #        smtp:
+  #          auth: true
+  #          starttls:
+  #            enable: true
+
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "${BACKEND_URL}/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+server:
+  port: 8094
+  forward-headers-strategy: framework
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration:
+    ms: 3600000000000
+  refresh:
+    expiration:
+      ms: 3600000000000
+
+verified:
+  email:
+    time:
+      milli:
+        second: 120000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    uz.codebyz.onlinecoursebackend: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+frontend:
+  base-url: ${FRONTEND}
+
+user:
+  profile:
+    images: uploads/user-profile-images
+course:
+  image:
+    url: uploads/course-promo-images/
+  video:
+    url: uploads/course-promo-videos/
+  certificateFolder: uploads/certificates/
+  skill:
+    icon: uploads/skills/
+
+google:
+  gemini:
+    api-key: ${GEMINI_API_KEY}
+    model: ${GEMINI_MODEL}
+telegram:
+  bot:
+    token: 7714880768:AAGwc6dHpqMwyJ7pBqP_mungB5-27YC5i2Q
+    username: https://t.me/CodeByZ_Notification_Bot
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  server-url: ${BACKEND_URL}
+
+swagger:
+  title: "CodeByZ Online Course API"
+  description: "Auth, Users, Courses va boshqaruv uchun API"
+  version: "v1"
+

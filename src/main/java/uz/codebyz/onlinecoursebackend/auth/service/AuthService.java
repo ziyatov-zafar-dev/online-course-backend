@@ -1,0 +1,327 @@
+package uz.codebyz.onlinecoursebackend.auth.service;
+
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uz.codebyz.onlinecoursebackend.auth.dto.*;
+import uz.codebyz.onlinecoursebackend.common.ApiResponse;
+import uz.codebyz.onlinecoursebackend.email.EmailService;
+import uz.codebyz.onlinecoursebackend.helper.FileHelper;
+import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
+import uz.codebyz.onlinecoursebackend.user.*;
+import uz.codebyz.onlinecoursebackend.verification.VerificationCode;
+import uz.codebyz.onlinecoursebackend.verification.VerificationService;
+import uz.codebyz.onlinecoursebackend.verification.VerificationType;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+
+@Service
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final VerificationService verificationService;
+    private final EmailService emailService;
+    private final JwtService jwtService;
+    private final UserProfileRepository userProfileRepository;
+
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       VerificationService verificationService,
+                       EmailService emailService,
+                       JwtService jwtService, UserProfileRepository userProfileRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.verificationService = verificationService;
+        this.emailService = emailService;
+        this.jwtService = jwtService;
+        this.userProfileRepository = userProfileRepository;
+    }
+
+    @Transactional
+    public ApiResponse<Object> signUp(SignUpRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ApiResponse.error("Bu email band.", "EMAIL_ALREADY_EXISTS");
+        }
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            return ApiResponse.error("Parollar mos kelmadi.", "PASSWORDS_NOT_MATCH");
+        }
+
+        User user = new User();
+        user.setFirstname(request.getFirstname());
+        user.setLastname(request.getLastname());
+        user.setEmail(request.getEmail());
+        user.setUsername(generateUsername(request.getEmail()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(UserRole.STUDENT);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEnabled(false);
+        if (request.getBirthDate() != null && !request.getBirthDate().isEmpty()) {
+            user.setBirthDate(LocalDate.parse(request.getBirthDate()));
+        }
+        userRepository.save(user);
+
+        VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.SIGN_UP, null);
+        emailService.sendEmail(user.getEmail(), "Tasdiqlash kodi", "Ro‘yxatdan o‘tishni tasdiqlang.", verificationCode.getCode());
+
+        return ApiResponse.ok("Tasdiqlash kodi emailingizga yuborildi.");
+    }
+
+    @Transactional
+    public ApiResponse<Object> verifySignUp(SignUpVerifyRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_UP, request.getCode(), null);
+        if (valid.isEmpty()) {
+            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+        }
+        user.setEnabled(true);
+        if (user.getProfile() == null) {
+            UserProfile profile = new UserProfile();
+            profile.setUser(user);
+            profile.setBio(null);
+            profile.setWebsite(null);
+            profile.setTelegram(null);
+            profile.setGithub(null);
+            profile.setLinkedin(null);
+            profile.setTwitter(null);
+            profile.setFacebook(null);
+            // PROFILE saqlanadi
+            userProfileRepository.save(profile);
+
+            // User-ga biriktiriladi
+            user.setProfile(profile);
+        }
+        user = userRepository.save(user);
+        return ApiResponse.ok("Akkount muvaffaqiyatli tasdiqlandi.");
+    }
+
+    @Transactional
+    public ApiResponse<Object> signIn(SignInRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        if (!user.isEnabled()) {
+            return ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED");
+        }
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+        }
+
+        VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
+        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", verificationCode.getCode());
+        return ApiResponse.ok("Kirishni tasdiqlash kodi emailingizga yuborildi.");
+    }
+
+    @Transactional
+    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_IN, request.getCode(), null);
+        if (valid.isEmpty()) {
+            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+        }
+        String access = jwtService.generateAccessToken(user);
+        String refresh = jwtService.generateRefreshToken(user);
+        return new ApiResponse<>(true, "Muvaffaqiyatli tizimga kirdingiz.", null,
+                new AuthTokensResponse(access, refresh, mapUser(user)));
+    }
+
+    public ApiResponse<AuthTokensResponse> refreshToken(RefreshTokenRequest request) {
+        String email = jwtService.extractEmail(request.getRefreshToken());
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BadCredentialsException("Token noto‘g‘ri."));
+        if (!jwtService.isTokenValid(request.getRefreshToken(), user)) {
+            return ApiResponse.error("Refresh token yaroqsiz yoki muddati o‘tgan.", "INVALID_REFRESH_TOKEN");
+        }
+        String newAccess = jwtService.generateAccessToken(user);
+        String newRefresh = jwtService.generateRefreshToken(user);
+        return ApiResponse.ok("Token yangilandi.", new AuthTokensResponse(newAccess, newRefresh, mapUser(user)));
+    }
+
+    @Transactional
+    public ApiResponse<Object> forgotPassword(ForgotPasswordRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        optionalUser.ifPresent(user -> {
+            VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.FORGOT_PASSWORD, null);
+            emailService.sendEmail(user.getEmail(), "Parolni tiklash", "Parolni tiklash kodini kiriting.", verificationCode.getCode());
+        });
+        return ApiResponse.ok("Parolni tiklash uchun kod emailingizga yuborildi.");
+    }
+
+    @Transactional
+    public ApiResponse<Object> resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ApiResponse.error("Parollar mos kelmadi.", "PASSWORDS_NOT_MATCH");
+        }
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.FORGOT_PASSWORD, request.getCode(), null);
+        if (valid.isEmpty()) {
+            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return ApiResponse.ok("Parolingiz muvaffaqiyatli o'zgartirildi.");
+    }
+
+    @Transactional
+    public ApiResponse<Object> changePassword(User user, ChangePasswordRequest request) {
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            return ApiResponse.error("Joriy parol noto‘g‘ri.", "BAD_CURRENT_PASSWORD");
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ApiResponse.error("Parollar mos kelmadi.", "PASSWORDS_NOT_MATCH");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return ApiResponse.ok("Parol muvaffaqiyatli o'zgartirildi.");
+    }
+
+
+    @Transactional
+    public ApiResponse<UserResponse> changeUsername(User user, ChangeUsernameRequest request) {
+        if (!isSuccessUsername(request.getNewUsername())) {
+            return ApiResponse.error("Username yaroqli emas", "INVALID_USERNAME");
+        }
+        if (userRepository.existsByUsername(request.getNewUsername())) {
+            return ApiResponse.error("Foydalanuvchi nomi band.", "USERNAME_ALREADY_EXISTS");
+        }
+        user.setUsername(request.getNewUsername());
+        userRepository.save(user);
+        return ApiResponse.ok("Foydalanuvchi nomi yangilandi.", mapUser(user));
+    }
+
+    private boolean isSuccessUsername(String username) {
+        if (username == null) return false;
+        return username.matches("^[a-zA-Z][a-zA-Z0-9_]{4,31}$");
+    }
+
+    @Transactional
+    public ApiResponse<Object> requestChangeEmail(User user, ChangeEmailRequest request) {
+        if (userRepository.existsByEmail(request.getNewEmail())) {
+            return ApiResponse.error("Bu email band.", "EMAIL_ALREADY_EXISTS");
+        }
+        VerificationCode code = verificationService.createVerification(user, VerificationType.CHANGE_EMAIL, request.getNewEmail());
+        emailService.sendEmail(request.getNewEmail(), "Emailni tasdiqlash", "Yangi emailingizni tasdiqlang.", code.getCode());
+        return ApiResponse.ok("Emailni tasdiqlash kodi yuborildi.");
+    }
+
+    @Transactional
+    public ApiResponse<UserResponse> verifyChangeEmail(User user, ChangeEmailVerifyRequest request) {
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.CHANGE_EMAIL, request.getCode(), request.getNewEmail());
+        if (valid.isEmpty()) {
+            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+        }
+        user.setEmail(request.getNewEmail());
+        userRepository.save(user);
+        return ApiResponse.ok("Email yangilandi.", mapUser(user));
+    }
+
+    @Transactional
+    public ApiResponse<UserResponse> updateProfile(User user, UpdateProfileRequest request) {
+        if (request.getFirstname() != null) {
+            user.setFirstname(request.getFirstname());
+        }
+        if (request.getLastname() != null) {
+            user.setLastname(request.getLastname());
+        }
+        if (request.getBirthDate() != null && !request.getBirthDate().isEmpty()) {
+            user.setBirthDate(LocalDate.parse(request.getBirthDate()));
+        }
+        if (request.getBio() != null || hasSocials(request)) {
+            if (user.getProfile() == null) {
+                UserProfile profile = new UserProfile();
+                profile.setUser(user);
+                user.setProfile(profile);
+            }
+            if (request.getBio() != null) {
+                user.getProfile().setBio(request.getBio());
+            }
+            if (request.getWebsite() != null) user.getProfile().setWebsite(request.getWebsite());
+            if (request.getTelegram() != null) user.getProfile().setTelegram(request.getTelegram());
+            if (request.getGithub() != null) user.getProfile().setGithub(request.getGithub());
+            if (request.getLinkedin() != null) user.getProfile().setLinkedin(request.getLinkedin());
+            if (request.getTwitter() != null) user.getProfile().setTwitter(request.getTwitter());
+            if (request.getFacebook() != null) user.getProfile().setFacebook(request.getFacebook());
+            if (request.getInstagram() != null) user.getProfile().setInstagram(request.getInstagram());
+            user.getProfile().setUpdatedAt();
+        }
+        userRepository.save(user);
+        return ApiResponse.ok("Profil muvaffaqiyatli yangilandi.", mapUser(user));
+    }
+
+    private boolean hasSocials(UpdateProfileRequest request) {
+        return request.getWebsite() != null || request.getTelegram() != null || request.getGithub() != null
+                || request.getLinkedin() != null || request.getTwitter() != null
+                || request.getFacebook() != null || request.getInstagram() != null;
+    }
+
+    public ApiResponse<UserResponse> getMe(User user) {
+        return ApiResponse.ok("OK", mapUser(user));
+    }
+
+    private String generateUsername(String email) {
+        String base = email.split("@")[0];
+        String candidate = base;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + "_" + ThreadLocalRandom.current().nextInt(1000, 9999);
+        }
+        return candidate;
+    }
+
+    public ApiResponse<Object> validateUsername(String username, User currentUser) {
+        if (!isSuccessUsername(username)) {
+            return ApiResponse.error("Username yaroqsiz. Harf bilan boshlansin, 5-32 belgi va faqat lotin/raqam/_.", "USERNAME_INVALID");
+        }
+        Optional<User> existing = userRepository.findByUsername(username);
+        if (existing.isPresent()) {
+            if (currentUser != null && existing.get().getId().equals(currentUser.getId())) {
+                return ApiResponse.ok("Username yaroqli.", null);
+            }
+            return ApiResponse.error("Bu username band.", "USERNAME_ALREADY_EXISTS");
+        }
+        return ApiResponse.ok("Username yaroqli.");
+    }
+
+
+    private UserResponse mapUser(User user) {
+        UserResponse res = new UserResponse();
+        res.setId(user.getId());
+        res.setFirstname(user.getFirstname());
+        res.setLastname(user.getLastname());
+        res.setUsername(user.getUsername());
+        res.setEmail(user.getEmail());
+        res.setBirthDate(user.getBirthDate() != null ? user.getBirthDate().toString() : null);
+        if (user.getProfile() != null) {
+            res.setBio(user.getProfile().getBio());
+            res.setWebsite(user.getProfile().getWebsite());
+            res.setTelegram(user.getProfile().getTelegram());
+            res.setGithub(user.getProfile().getGithub());
+            res.setLinkedin(user.getProfile().getLinkedin());
+            res.setTwitter(user.getProfile().getTwitter());
+            res.setFacebook(user.getProfile().getFacebook());
+            res.setInstagram(user.getProfile().getInstagram());
+            if (user.getProfile().getImages() != null && !user.getProfile().getImages().isEmpty()) {
+                java.util.List<ProfileImageResponse> imgDtos = new java.util.ArrayList<>();
+                for (UserProfileImage img : user.getProfile().getImages()) {
+                    ProfileImageResponse dto = new ProfileImageResponse();
+                    dto.setId(img.getId());
+                    dto.setUrl(img.getUrl());
+                    dto.setOriginalName(img.getOriginalName());
+                    dto.setContentType(img.getContentType());
+                    dto.setSize(img.getSize());
+                    dto.setSizeMB(FileHelper.getFileSize(img.getSize()));
+//                    dto.setSizeMB(FileHelper.getFileSize(3584));
+                    imgDtos.add(dto);
+                }
+                res.setImages(imgDtos);
+            }
+        }
+        res.setRole(user.getRole());
+        res.setStatus(user.getStatus());
+        res.setEnabled(user.isEnabled());
+        return res;
+    }
+}

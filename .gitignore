@@ -1,0 +1,7 @@
+uploads/skills/
+uploads/user-profile-images/
+uploads/course-promo-images/
+uploads/certificates/
+target/
+!.mvn
+!.mvn/wrapper/maven-wrapper.jar
