@@ -2,6 +2,8 @@ package uz.codebyz.onlinecoursebackend.admin.module.mapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import uz.codebyz.onlinecoursebackend.admin.course.mapper.AdminCourseMapper;
+import uz.codebyz.onlinecoursebackend.admin.lesson.mapper.AdminLessonMapper;
 import uz.codebyz.onlinecoursebackend.admin.module.dto.AdminModuleCreateRequestDto;
 import uz.codebyz.onlinecoursebackend.admin.module.dto.AdminModuleResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.module.dto.AdminModuleUpdateRequestDto;
@@ -14,7 +16,14 @@ import java.util.stream.Collectors;
 
 public class AdminModuleMapper {
     public static AdminModuleResponseDto toDto(Module module) {
-        return new AdminModuleResponseDto(module.getId(), module.getName(), module.getDescription(), module.getSlug(), module.getCourse().getId(), module.getOrderNumber(), module.getCreated(), module.getUpdated());
+
+        return new AdminModuleResponseDto(
+                module.getId(), module.getName(),
+                module.getDescription(), module.getSlug(),
+                module.getCourse().getId(), module.getOrderNumber(),
+                module.getCreated(), module.getUpdated(),
+                AdminLessonMapper.toDto(module.getLessons().stream().filter(lesson -> (lesson.getActive() && !lesson.getDeleted())).toList())
+        );
     }
 
     public static List<AdminModuleResponseDto> toDto(List<Module> modules) {

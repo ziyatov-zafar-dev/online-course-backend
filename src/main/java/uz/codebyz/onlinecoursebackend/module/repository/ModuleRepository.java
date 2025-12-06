@@ -34,4 +34,6 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
 
     @Query("select m from Module m where m.id=:id")
     Optional<Module>findById(@Param("id") UUID moduleId);
+
+
 }

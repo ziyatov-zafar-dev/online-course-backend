@@ -3,6 +3,8 @@ package uz.codebyz.onlinecoursebackend.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import uz.codebyz.onlinecoursebackend.student.entity.Student;
+import uz.codebyz.onlinecoursebackend.student.repository.StudentRepository;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.entity.TeacherStatus;
 import uz.codebyz.onlinecoursebackend.teacher.repository.TeacherRepository;
@@ -22,15 +24,22 @@ public class DataLoader implements CommandLineRunner {
     private static final String TEACHER_USERNAME = "teacher";
     private static final String TEACHER_PASSWORD = "Teacher@123";
 
+    private static final String STUDENT_EMAIL = "zziyatov811@gmail.com";
+    private static final String STUDENT_USERNAME = "student";
+    private static final String STUDENT_PASSWORD = "Student@123";
+
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
+    private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataLoader(UserRepository userRepository,
                       TeacherRepository teacherRepository,
+                      StudentRepository studentRepository,
                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.teacherRepository = teacherRepository;
+        this.studentRepository = studentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -56,7 +65,6 @@ public class DataLoader implements CommandLineRunner {
         // CREATE DEFAULT TEACHER
         if (!userRepository.existsByEmail(TEACHER_EMAIL)) {
 
-            // 1) User qo‘shish
             User userTeacher = new User();
             userTeacher.setFirstname("Default");
             userTeacher.setLastname("Teacher");
@@ -70,7 +78,6 @@ public class DataLoader implements CommandLineRunner {
 
             User savedUser = userRepository.save(userTeacher);
 
-            // 2) Teacher jadvaliga yozish
             Teacher teacher = new Teacher();
             teacher.setUser(savedUser);
             teacher.setStatus(TeacherStatus.OPEN);
@@ -78,6 +85,29 @@ public class DataLoader implements CommandLineRunner {
             teacherRepository.save(teacher);
         }
 
+        // CREATE DEFAULT STUDENT
+        if (!userRepository.existsByEmail(STUDENT_EMAIL)) {
+
+            // 1) User yaratish
+            User studentUser = new User();
+            studentUser.setFirstname("Default");
+            studentUser.setLastname("Student");
+            studentUser.setEmail(STUDENT_EMAIL);
+            studentUser.setUsername(resolveUsername(STUDENT_USERNAME));
+            studentUser.setPassword(passwordEncoder.encode(STUDENT_PASSWORD));
+            studentUser.setRole(UserRole.STUDENT);
+            studentUser.setStatus(UserStatus.ACTIVE);
+            studentUser.setEnabled(true);
+            studentUser.setAccountNonLocked(true);
+
+            User savedStudentUser = userRepository.save(studentUser);
+
+            // 2) Student jadvaliga yozish
+            Student student = new Student();
+            student.setUser(savedStudentUser);
+
+            studentRepository.save(student);
+        }
     }
 
     private String resolveUsername(String baseUsername) {

@@ -73,7 +73,7 @@ public class AdminCourseMapper {
         dto.setPromoCourseVideoFileName(course.getPromoCourseVideoFileName());
         dto.setPromoCourseVideoFileSize(course.getPromoCourseVideoFileSize());
         if (course.getModules() != null && !course.getModules().isEmpty())
-            dto.setModules(AdminModuleMapper.toDto(course.getModules().stream().filter(Module::getActive).toList()));
+            dto.setModules(AdminModuleMapper.toDto(course.getModules().stream().filter(module -> (module.getActive() && !module.getDeleted())).toList()));
         else dto.setModules(new ArrayList<>());
         return dto;
     }

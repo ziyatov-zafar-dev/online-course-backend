@@ -1,6 +1,9 @@
 package uz.codebyz.onlinecoursebackend.admin.module.dto;
 
+import uz.codebyz.onlinecoursebackend.admin.lesson.dto.AdminLessonResponseDto;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class AdminModuleResponseDto {
@@ -12,6 +15,35 @@ public class AdminModuleResponseDto {
     private Integer orderNumber;
     private LocalDateTime created;
     private LocalDateTime updated;
+    private List<AdminLessonResponseDto>  lessons;
+
+    public UUID getCourseId() {
+        return courseId;
+    }
+
+    public AdminModuleResponseDto(UUID id, String name, String description, String slug, UUID courseId, Integer orderNumber, LocalDateTime created, LocalDateTime updated, List<AdminLessonResponseDto> lessons) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.slug = slug;
+        this.courseId = courseId;
+        this.orderNumber = orderNumber;
+        this.created = created;
+        this.updated = updated;
+        this.lessons = lessons;
+    }
+
+    public void setCourseId(UUID courseId) {
+        this.courseId = courseId;
+    }
+
+    public List<AdminLessonResponseDto> getLessons() {
+        return lessons;
+    }
+
+    public void setLessons(List<AdminLessonResponseDto> lessons) {
+        this.lessons = lessons;
+    }
 
     public AdminModuleResponseDto() {
     }

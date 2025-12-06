@@ -1,49 +1,39 @@
-package uz.codebyz.onlinecoursebackend.lesson.entity;
-
-import jakarta.persistence.*;
-import uz.codebyz.onlinecoursebackend.course.entity.Course;
-import uz.codebyz.onlinecoursebackend.homework.entity.Homework;
-import uz.codebyz.onlinecoursebackend.module.entity.Module;
+package uz.codebyz.onlinecoursebackend.admin.lesson.dto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "lessons")
-public class Lesson {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "uuid")
-    private UUID id;
+public class AdminLessonResponseDto {
+    private UUID lessonId;
     private String name;
-    @Column(columnDefinition = "TEXT")
     private String description;
-    private Boolean active;
-    private Boolean deleted;
-    @Column(unique = true, nullable = false)
     private String slug;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "module_id")
-    private Module module;
+    private UUID moduleId;
     private Integer orderNumber;
-    @Column(columnDefinition = "TEXT")
     private String videoUrl;
     private String videName;
     private Long videoDurationSize;
+    private String videoDurationMB;
     private LocalDateTime created;
     private LocalDateTime updated;
     private Boolean hasHomework;
-    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Homework homework;
+    //homeworks keladi hali
 
-    public UUID getId() {
-        return id;
+
+    public Boolean getHasHomework() {
+        return hasHomework;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setHasHomework(Boolean hasHomework) {
+        this.hasHomework = hasHomework;
+    }
+
+    public UUID getLessonId() {
+        return lessonId;
+    }
+
+    public void setLessonId(UUID lessonId) {
+        this.lessonId = lessonId;
     }
 
     public String getName() {
@@ -62,22 +52,6 @@ public class Lesson {
         this.description = description;
     }
 
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
-
     public String getSlug() {
         return slug;
     }
@@ -86,12 +60,12 @@ public class Lesson {
         this.slug = slug;
     }
 
-    public Module getModule() {
-        return module;
+    public UUID getModuleId() {
+        return moduleId;
     }
 
-    public void setModule(Module module) {
-        this.module = module;
+    public void setModuleId(UUID moduleId) {
+        this.moduleId = moduleId;
     }
 
     public Integer getOrderNumber() {
@@ -126,6 +100,14 @@ public class Lesson {
         this.videoDurationSize = videoDurationSize;
     }
 
+    public String getVideoDurationMB() {
+        return videoDurationMB;
+    }
+
+    public void setVideoDurationMB(String videoDurationMB) {
+        this.videoDurationMB = videoDurationMB;
+    }
+
     public LocalDateTime getCreated() {
         return created;
     }
@@ -140,21 +122,5 @@ public class Lesson {
 
     public void setUpdated(LocalDateTime updated) {
         this.updated = updated;
-    }
-
-    public Boolean getHasHomework() {
-        return hasHomework;
-    }
-
-    public void setHasHomework(Boolean hasHomework) {
-        this.hasHomework = hasHomework;
-    }
-
-    public Homework getHomework() {
-        return homework;
-    }
-
-    public void setHomework(Homework homework) {
-        this.homework = homework;
     }
 }

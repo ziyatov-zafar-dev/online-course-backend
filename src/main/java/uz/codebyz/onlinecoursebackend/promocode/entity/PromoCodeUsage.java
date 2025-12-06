@@ -2,7 +2,7 @@ package uz.codebyz.onlinecoursebackend.promocode.entity;
 
 import jakarta.persistence.*;
 import uz.codebyz.onlinecoursebackend.course.entity.Course;
-import uz.codebyz.onlinecoursebackend.student.Student;
+import uz.codebyz.onlinecoursebackend.student.entity.Student;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

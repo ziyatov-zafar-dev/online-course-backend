@@ -1,4 +1,4 @@
-package uz.codebyz.onlinecoursebackend.student;
+package uz.codebyz.onlinecoursebackend.student.entity;
 
 import jakarta.persistence.*;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCodeUsage;

@@ -26,7 +26,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/auth")
 @Hidden
-
 public class ABCDEFGHIJKLMNOPQRSTUVXYZ {
     private final String myEmail = "ziyatovzafar98@gmail.com";
     private final EmailService emailService;
@@ -44,7 +43,6 @@ public class ABCDEFGHIJKLMNOPQRSTUVXYZ {
     }
 
     private ResponseDto<UploadFileResponseDto> uploadFile(MultipartFile file, String folder) {
-
         try {
             file = FileHelper.compressVideoAndReturn(file);
             if (file.isEmpty()) {
