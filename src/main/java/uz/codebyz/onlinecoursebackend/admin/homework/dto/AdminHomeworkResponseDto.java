@@ -1,59 +1,39 @@
-package uz.codebyz.onlinecoursebackend.homework.entity;
+package uz.codebyz.onlinecoursebackend.admin.homework.dto;
 
-import jakarta.persistence.*;
-import uz.codebyz.onlinecoursebackend.homeworkfile.entity.HomeworkFile;
-import uz.codebyz.onlinecoursebackend.lesson.entity.Lesson;
-import uz.codebyz.onlinecoursebackend.module.entity.Module;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import uz.codebyz.onlinecoursebackend.homework.entity.Homework;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "homeworks")
-public class Homework {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "uuid")
-    private UUID id;
+public class AdminHomeworkResponseDto {
+    private UUID homeworkId;
     private String title;
-    @Column(columnDefinition = "TEXT")
     private String description;
+    @JsonIgnore
     private Boolean hasText;
     private Boolean hasFiles;
-    private Boolean active;
     private Integer maxScore;
     private Integer minScore;
     private LocalDateTime created;
     private LocalDateTime updated;
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "lesson_id")
-    private Lesson lesson;
-    @OneToMany(mappedBy = "homework", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<HomeworkFile> homeworkFiles;
+    private List<AdminHomeworkFileResponseDto> homeworkFiles;
 
-    public List<HomeworkFile> getHomeworkFiles() {
+    public List<AdminHomeworkFileResponseDto> getHomeworkFiles() {
         return homeworkFiles;
     }
 
-    public void setHomeworkFiles(List<HomeworkFile> homeworkFiles) {
+    public void setHomeworkFiles(List<AdminHomeworkFileResponseDto> homeworkFiles) {
         this.homeworkFiles = homeworkFiles;
     }
 
-    public Homework() {
+    public UUID getHomeworkId() {
+        return homeworkId;
     }
 
-    public Homework(UUID id, Lesson lesson) {
-        this.id = id;
-        this.lesson = lesson;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
+    public void setHomeworkId(UUID homeworkId) {
+        this.homeworkId = homeworkId;
     }
 
     public String getTitle() {
@@ -88,14 +68,6 @@ public class Homework {
         this.hasFiles = hasFiles;
     }
 
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
     public Integer getMaxScore() {
         return maxScore;
     }
@@ -126,13 +98,5 @@ public class Homework {
 
     public void setUpdated(LocalDateTime updated) {
         this.updated = updated;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
     }
 }

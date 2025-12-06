@@ -1,8 +1,10 @@
 package uz.codebyz.onlinecoursebackend.admin.category.dto;
 
+import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseResponseDto;
 import uz.codebyz.onlinecoursebackend.category.entity.CategoryStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class AdminCategoryResponseDto {
@@ -14,6 +16,15 @@ public class AdminCategoryResponseDto {
     private LocalDateTime created;
     private LocalDateTime updated;
     private Object status;
+    private List<AdminCourseResponseDto> courses;
+
+    public List<AdminCourseResponseDto> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<AdminCourseResponseDto> courses) {
+        this.courses = courses;
+    }
 
     public Object getStatus() {
         return status;
@@ -31,6 +42,18 @@ public class AdminCategoryResponseDto {
         this.orderNumber = orderNumber;
         this.created = created;
         this.updated = updated;
+    }
+
+    public AdminCategoryResponseDto(UUID categoryId, String name, String description, String slug, Integer orderNumber, LocalDateTime created, LocalDateTime updated, Object status, List<AdminCourseResponseDto> courses) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.description = description;
+        this.slug = slug;
+        this.orderNumber = orderNumber;
+        this.created = created;
+        this.updated = updated;
+        this.status = status;
+        this.courses = courses;
     }
 
     public AdminCategoryResponseDto(UUID categoryId, String name, String description, String slug,

@@ -1,6 +1,7 @@
 package uz.codebyz.onlinecoursebackend.admin.lesson.mapper;
 
 import org.springframework.data.domain.Page;
+import uz.codebyz.onlinecoursebackend.admin.homework.mapper.AdminHomeworkMapper;
 import uz.codebyz.onlinecoursebackend.admin.lesson.dto.AdminCreateLessonRequestDto;
 import uz.codebyz.onlinecoursebackend.admin.lesson.dto.AdminLessonResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.lesson.dto.AdminUpdateLessonRequestDto;
@@ -28,6 +29,8 @@ public class AdminLessonMapper {
         dto.setCreated(lesson.getCreated());
         dto.setUpdated(lesson.getUpdated());
         dto.setHasHomework(lesson.getHasHomework());
+        if (lesson.getHomework() != null)
+            dto.setHomework(AdminHomeworkMapper.toDto(lesson.getHomework()));
         return dto;
     }
 
@@ -55,8 +58,10 @@ public class AdminLessonMapper {
         lesson.setHomework(null);
         lesson.setCreated(CurrentTime.currentTime());
         lesson.setUpdated(CurrentTime.currentTime());
+
         return lesson;
     }
+
     public static Lesson editLessonMapper(AdminUpdateLessonRequestDto dto, Lesson lesson) {
         lesson.setName(dto.getName());
         lesson.setDescription(dto.getDescription());

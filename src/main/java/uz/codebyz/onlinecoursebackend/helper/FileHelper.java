@@ -69,7 +69,7 @@ public class FileHelper {
                 new File(folder).mkdirs();
             }
             String originalName = file.getOriginalFilename();
-            String newFileName = (CurrentTime.currentTime() + "_" + originalName).replaceAll("[^a-zA-Z0-9_.]", "_");
+            String newFileName = ((CurrentTime.currentTime() + "_" + originalName).replaceAll("[^a-zA-Z0-9_]", "_")) + ("." + getFileExt(originalName));
             Path filePath = Paths.get(folder + newFileName);
             Files.write(filePath, file.getBytes());
             return new ResponseDto<>(true, "Ok", new UploadFileResponseDto(
@@ -194,5 +194,12 @@ public class FileHelper {
         }
     }
 
+
+    public static String getFileExt(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
+            return null;
+        }
+        return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+    }
 
 }

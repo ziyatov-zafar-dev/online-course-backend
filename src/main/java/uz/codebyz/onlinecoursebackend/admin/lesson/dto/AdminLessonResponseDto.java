@@ -1,6 +1,9 @@
 package uz.codebyz.onlinecoursebackend.admin.lesson.dto;
 
+import uz.codebyz.onlinecoursebackend.admin.homework.dto.AdminHomeworkResponseDto;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class AdminLessonResponseDto {
@@ -17,8 +20,15 @@ public class AdminLessonResponseDto {
     private LocalDateTime created;
     private LocalDateTime updated;
     private Boolean hasHomework;
-    //homeworks keladi hali
+    private AdminHomeworkResponseDto homework;
 
+    public AdminHomeworkResponseDto getHomework() {
+        return homework;
+    }
+
+    public void setHomework(AdminHomeworkResponseDto homework) {
+        this.homework = homework;
+    }
 
     public Boolean getHasHomework() {
         return hasHomework;

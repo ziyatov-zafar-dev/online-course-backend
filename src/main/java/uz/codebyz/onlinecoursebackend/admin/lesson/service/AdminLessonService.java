@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AdminLessonService {
-    ResponseDto<AdminLessonResponseDto> addLesson(UUID moduleId, AdminCreateLessonRequestDto req);
+    ResponseDto<AdminLessonResponseDto> addLesson( AdminCreateLessonRequestDto req);
 
     ResponseDto<AdminLessonResponseDto> updateLesson(UUID lessonId, AdminUpdateLessonRequestDto req);
 

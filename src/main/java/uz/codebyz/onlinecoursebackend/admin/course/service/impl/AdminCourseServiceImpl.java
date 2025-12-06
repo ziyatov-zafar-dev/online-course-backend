@@ -92,7 +92,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         }
         Course course = cOp.get();
 
-        ResponseDto<UploadFileResponseDto> videoUpload = uploadFile(video, baseCourseVideoPath);
+        ResponseDto<UploadFileResponseDto> videoUpload = uploadFile(video, baseCourseVideoPath, true);
         if (!videoUpload.isSuccess())
             return ResponseDto.error("Video yuklashda xatolik: " + videoUpload.getMessage());
         if (FileHelper.deleteFile(course.getPromoCourseVideoUrl())) {
@@ -100,6 +100,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         }
 
         UploadFileResponseDto uploadFile = videoUpload.getData();
+        if (course.getPromoCourseVideoUrl() != null) {
+            FileHelper.deleteFile(course.getPromoCourseVideoUrl());
+        }
         course.setPromoCourseVideoFileSize(uploadFile.getFileSize());
         course.setPromoCourseVideoFileName(uploadFile.getFileName());
         course.setPromoCourseVideoUrl(uploadFile.getFileUrl());
@@ -113,13 +116,16 @@ public class AdminCourseServiceImpl implements AdminCourseService {
             return ResponseDto.error("Bunday ID li kurs mavjud emas. kurs id: " + courseId);
         }
         Course course = cOp.get();
-        ResponseDto<UploadFileResponseDto> videoUpload = uploadFile(image, baseCourseImagePath);
+        ResponseDto<UploadFileResponseDto> videoUpload = uploadFile(image, baseCourseImagePath, false);
         if (!videoUpload.isSuccess())
             return ResponseDto.error("Video yuklashda xatolik: " + videoUpload.getMessage());
         if (FileHelper.deleteFile(course.getImgUrl())) {
             System.out.println("Fayl o'chirildi");
         }
         UploadFileResponseDto uploadFile = videoUpload.getData();
+        if (course.getImgUrl() != null) {
+            FileHelper.deleteFile(course.getImgUrl());
+        }
         course.setImgSize(uploadFile.getFileSize());
         course.setImgName(uploadFile.getFileName());
         course.setImgUrl(uploadFile.getFileUrl());
@@ -210,10 +216,10 @@ public class AdminCourseServiceImpl implements AdminCourseService {
 
     }
 
-    private ResponseDto<UploadFileResponseDto> uploadFile(MultipartFile file, String folder) {
+    private ResponseDto<UploadFileResponseDto> uploadFile(MultipartFile file, String folder, boolean isVideo) {
 
         try {
-            file = FileHelper.compressVideoAndReturn(file);
+            if (isVideo) file = FileHelper.compressVideoAndReturn(file);
             if (file.isEmpty()) {
                 return ResponseDto.error("Fayl topilmadi!");
             }
@@ -255,8 +261,8 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         course.setUpdatedAt();
         MultipartFile video = request.getVideo();
         MultipartFile image = request.getImage();
-        ResponseDto<UploadFileResponseDto> checkUploadVideo = uploadFile(video, baseCourseVideoPath);
-        ResponseDto<UploadFileResponseDto> checkUploadImage = uploadFile(image, baseCourseImagePath);
+        ResponseDto<UploadFileResponseDto> checkUploadVideo = uploadFile(video, baseCourseVideoPath, true);
+        ResponseDto<UploadFileResponseDto> checkUploadImage = uploadFile(image, baseCourseImagePath, false);
         if (!checkUploadVideo.isSuccess()) {
             throw new RuntimeException("Video ni saqlashda xatolik yuz berdi: " + checkUploadVideo.getMessage());
         }

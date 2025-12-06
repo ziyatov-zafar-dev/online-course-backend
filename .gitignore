@@ -1,6 +1,9 @@
 uploads/skills/
 uploads/user-profile-images/
 uploads/course-promo-images/
+uploads/course-promo-videos/
+uploads/lesson-videos/
+uploads/homework-files/
 uploads/certificates/
 target/
 !.mvn

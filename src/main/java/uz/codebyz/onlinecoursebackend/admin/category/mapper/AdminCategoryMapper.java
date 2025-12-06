@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.admin.category.mapper;
 
 import uz.codebyz.onlinecoursebackend.admin.category.dto.AdminCategoryCreateRequest;
 import uz.codebyz.onlinecoursebackend.admin.category.dto.AdminCategoryResponseDto;
+import uz.codebyz.onlinecoursebackend.admin.course.mapper.AdminCourseMapper;
 import uz.codebyz.onlinecoursebackend.category.entity.Category;
 import uz.codebyz.onlinecoursebackend.category.entity.CategoryStatus;
 import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
@@ -39,7 +40,10 @@ public class AdminCategoryMapper {
                 category.getOrderNumber(),
                 category.getCreated(),
                 category.getUpdated(),
-                category.getStatus()
+                category.getStatus(),
+                AdminCourseMapper.toDtoList(category.getCourses().stream().filter(
+                        course -> (course.getActive() && !course.getDeleted())
+                ).toList())
         );
         response.setStatus(statusDto);
         return response;

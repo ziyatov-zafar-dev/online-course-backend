@@ -118,4 +118,7 @@ public class ABCDEFGHIJKLMNOPQRSTUVXYZ {
         emailService.sendWarning(myEmail, message);
         return "Muvaffaqiyatli yuborildi";
     }
+
+
+
 }

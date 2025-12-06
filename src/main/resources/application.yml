@@ -95,6 +95,9 @@ course:
     url: uploads/course-promo-videos/
     lesson:
       url: uploads/lesson-videos/
+  homework:
+    file:
+      upload: uploads/homework-files/
   certificateFolder: uploads/certificates/
   skill:
     icon: uploads/skills/

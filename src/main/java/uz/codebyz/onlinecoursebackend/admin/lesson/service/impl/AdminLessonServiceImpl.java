@@ -39,8 +39,8 @@ public class AdminLessonServiceImpl implements AdminLessonService {
     }
 
     @Override
-    public ResponseDto<AdminLessonResponseDto> addLesson(UUID moduleId, AdminCreateLessonRequestDto req) {
-        Optional<Module> mOp = moduleRepository.findById(moduleId);
+    public ResponseDto<AdminLessonResponseDto> addLesson(AdminCreateLessonRequestDto req) {
+        Optional<Module> mOp = moduleRepository.findById(req.getModuleId());
         if (mOp.isEmpty()) return new ResponseDto<>(false, "Not found lesson");
         Lesson lesson = AdminLessonMapper.addLessonMapper(req, mOp.get());
         return new ResponseDto<>(true, "success",
