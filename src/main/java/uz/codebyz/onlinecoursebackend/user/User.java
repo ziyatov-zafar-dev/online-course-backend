@@ -17,8 +17,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid")
     private UUID id;
-
-    @Column(nullable = true, length = 100)
+    private Long chatId = null;
+    @Column(nullable = false, length = 100)
     private String firstname;
 
     @Column(nullable = true, length = 100)
@@ -179,5 +179,13 @@ public class User {
 
     public void setAccountNonLocked(boolean accountNonLocked) {
         this.accountNonLocked = accountNonLocked;
+    }
+
+    public Long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(Long chatId) {
+        this.chatId = chatId;
     }
 }
