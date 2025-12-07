@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.course.entity;
 
 import jakarta.persistence.*;
 import uz.codebyz.onlinecoursebackend.category.entity.Category;
+import uz.codebyz.onlinecoursebackend.certificate.entity.Certificate;
 import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.module.entity.Module;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCode;
@@ -9,6 +10,7 @@ import uz.codebyz.onlinecoursebackend.skill.entity.Skill;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,11 +24,11 @@ public class Course {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-/*
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "teacher_id", nullable = false)
-    private Teacher teacher;
-*/
+    /*
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "teacher_id", nullable = false)
+        private Teacher teacher;
+    */
     private String name;
     private String description;
     private Boolean active;
@@ -40,13 +42,13 @@ public class Course {
     private Boolean hasTelegramChannel;
     @Enumerated(EnumType.STRING)
     private CourseStatus status;
-    @Column(precision = 19, scale = 2,nullable = true)
+    @Column(precision = 19, scale = 2, nullable = true)
     private BigDecimal discountPrice;
-    @Column(precision = 19, scale = 2,nullable = true)
+    @Column(precision = 19, scale = 2, nullable = true)
     private BigDecimal price;
 
 
-    @Column(precision = 19, scale = 2,nullable = true)
+    @Column(precision = 19, scale = 2, nullable = true)
     private BigDecimal finalPrice;
     private Integer discountPercent;
     private LocalDateTime discountStartAt;
@@ -59,16 +61,18 @@ public class Course {
     private String promoCourseVideoUrl;
     private String promoCourseVideoFileName;
     private Long promoCourseVideoFileSize;
-//    @Column(nullable = false)
+    //    @Column(nullable = false)
     private LocalDateTime created;
-//    @Column(nullable = false)
+    //    @Column(nullable = false)
     private LocalDateTime updated;
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<PromoCode> promoCodes;
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Skill> skills;
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Module>modules;
+    private List<Module> modules;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Certificate> certificates = new ArrayList<>();
 
     public List<PromoCode> getPromoCodes() {
         return promoCodes;
@@ -131,7 +135,7 @@ public class Course {
     }
 
     public void setUpdated(LocalDateTime updatedAt) {
-        this.updated =updatedAt ;
+        this.updated = updatedAt;
     }
 
     public Long getPromoCourseVideoFileSize() {
@@ -315,6 +319,7 @@ public class Course {
     public void setCreatedAt() {
         this.created = CurrentTime.currentTime();
     }
+
     public void setCreated(LocalDateTime createdAt) {
         this.created = createdAt;
     }
@@ -325,5 +330,13 @@ public class Course {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public List<Certificate> getCertificates() {
+        return certificates;
+    }
+
+    public void setCertificates(List<Certificate> certificates) {
+        this.certificates = certificates;
     }
 }

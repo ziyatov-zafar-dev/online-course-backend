@@ -122,3 +122,31 @@ swagger:
   description: "Auth, Users, Courses va boshqaruv uchun API"
   version: "v1"
 
+
+
+#payments:
+#  payme:
+#    merchant-id: ${PAYME_MERCHANT_ID}
+#    secret-key: ${PAYME_SECRET_KEY}
+#    test-mode: ${PAYME_TEST_MODE}
+#  click:
+#    merchant-id: ${CLICK_MERCHANT_ID}
+#    service-id: ${CLICK_SERVICE_ID}
+#    secret-key: ${CLICK_SECRET_KEY}
+#  uzum:
+#    merchant-id: ${UZUM_MERCHANT_ID}
+#    secret-key: ${UZUM_SECRET_KEY}
+#    api-url: ${UZUM_API_URL}
+#  paylov:
+#    merchant-id: ${PAYLOV_MERCHANT_ID}
+#    secret-key: ${PAYLOV_SECRET_KEY}
+#    api-url: ${PAYLOV_API_URL}
+#  hamkor:
+#    terminal-id: ${HAMKOR_TERMINAL_ID}
+#    secret-key: ${HAMKOR_SECRET_KEY}
+#    api-url: ${HAMKOR_API_URL}
+#  paypal:
+#    client-id: ${PAYPAL_CLIENT_ID}
+#    client-secret: ${PAYPAL_CLIENT_SECRET}
+#    mode: ${PAYPAL_MODE}
+#    api-url: ${PAYPAL_API_URL}

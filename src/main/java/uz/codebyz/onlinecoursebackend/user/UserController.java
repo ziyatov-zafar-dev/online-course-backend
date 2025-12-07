@@ -69,8 +69,10 @@ public class UserController {
 
     @Operation(summary = "Yangi emailni kod orqali tasdiqlash")
     @PostMapping("/change-email/verify")
-    public ResponseEntity<ApiResponse<UserResponse>> verifyChangeEmail(@AuthenticationPrincipal UserPrincipal principal,
-                                                                       @Valid @RequestBody ChangeEmailVerifyRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> verifyChangeEmail(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody ChangeEmailVerifyRequest request
+    ) {
         ApiResponse<UserResponse> response = authService.verifyChangeEmail(principal.getUser(), request);
         HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);

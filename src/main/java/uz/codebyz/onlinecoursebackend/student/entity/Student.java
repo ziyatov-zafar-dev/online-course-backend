@@ -1,6 +1,7 @@
 package uz.codebyz.onlinecoursebackend.student.entity;
 
 import jakarta.persistence.*;
+import uz.codebyz.onlinecoursebackend.certificate.entity.Certificate;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCodeUsage;
 import uz.codebyz.onlinecoursebackend.user.User;
 
@@ -21,6 +22,8 @@ public class Student {
     private User user;
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<PromoCodeUsage> promoCodeUsages;
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Certificate> certificates;
 
     public List<PromoCodeUsage> getPromoCodeUsages() {
         return promoCodeUsages;
@@ -44,5 +47,13 @@ public class Student {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<Certificate> getCertificates() {
+        return certificates;
+    }
+
+    public void setCertificates(List<Certificate> certificates) {
+        this.certificates = certificates;
     }
 }

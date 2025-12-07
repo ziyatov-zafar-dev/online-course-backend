@@ -97,9 +97,4 @@ public class AuthController {
         HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
     }
-
-    @GetMapping("/gemini/description/{course-description}")
-    public ResponseDto<?> geminiExample(@PathVariable("course-description") String courseDescription) {
-        return geminiService.generateCourseDescription(courseDescription);
-    }
 }
