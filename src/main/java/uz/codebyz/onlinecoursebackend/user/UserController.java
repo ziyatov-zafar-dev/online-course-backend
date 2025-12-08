@@ -2,7 +2,9 @@ package uz.codebyz.onlinecoursebackend.user;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,9 @@ import uz.codebyz.onlinecoursebackend.auth.dto.*;
 import uz.codebyz.onlinecoursebackend.auth.service.AuthService;
 import uz.codebyz.onlinecoursebackend.common.ApiResponse;
 import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users/me")
@@ -21,10 +26,12 @@ public class UserController {
 
     private final AuthService authService;
     private final ProfileImageService profileImageService;
+    private final UserDeviceService userDeviceService;
 
-    public UserController(AuthService authService, ProfileImageService profileImageService) {
+    public UserController(AuthService authService, ProfileImageService profileImageService, UserDeviceService userDeviceService) {
         this.authService = authService;
         this.profileImageService = profileImageService;
+        this.userDeviceService = userDeviceService;
     }
 
     @Operation(summary = "Mening ma’lumotlarimni olish")
@@ -84,5 +91,21 @@ public class UserController {
                                                                         @RequestParam("file") MultipartFile file) {
         UserResponse data = profileImageService.upload(file, principal.getUser());
         return ResponseEntity.ok(ApiResponse.ok("Profil rasmi yuklandi.", data));
+    }
+
+    @GetMapping("/me/status")
+    public ApiResponse<?> getMyStatus(@AuthenticationPrincipal UserPrincipal principal) {
+        boolean online = userDeviceService.isUserOnline(principal.getUser().getId());
+        String lastSeen = userDeviceService.getLastSeen(principal.getUser().getId());
+
+        return ApiResponse.ok("Ok", Map.of(
+                "online", online,
+                "lastSeen", lastSeen
+        ));
+    }
+
+    @GetMapping("/me/devices")
+    public ApiResponse<?> myDevices(@AuthenticationPrincipal UserPrincipal userPrincipal, HttpServletRequest req) {
+        return ApiResponse.ok("Ok", userDeviceService.getDevices(userPrincipal.getUser().getId(), req));
     }
 }

@@ -27,8 +27,27 @@ public class AdminUserResponseDto {
     private boolean enabled;
     private Long teacherId;
     private UUID studentId;
+    private Boolean online;
+    private String lastOnline;
+
+    public Boolean getOnline() {
+        return online;
+    }
+
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
+
+    public String getLastOnline() {
+        return lastOnline;
+    }
+
+    public void setLastOnline(String lastOnline) {
+        this.lastOnline = lastOnline;
+    }
 
     public UUID getStudentId() {
+
         return studentId;
     }
 

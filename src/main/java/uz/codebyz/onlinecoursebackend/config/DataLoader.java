@@ -8,10 +8,16 @@ import uz.codebyz.onlinecoursebackend.student.repository.StudentRepository;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.entity.TeacherStatus;
 import uz.codebyz.onlinecoursebackend.teacher.repository.TeacherRepository;
+import uz.codebyz.onlinecoursebackend.teacherprice.entity.TeacherPrice;
+import uz.codebyz.onlinecoursebackend.teacherprice.repository.TeacherPriceRepository;
 import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.user.UserRepository;
 import uz.codebyz.onlinecoursebackend.user.UserRole;
 import uz.codebyz.onlinecoursebackend.user.UserStatus;
+import uz.codebyz.onlinecoursebackend.userDevice.entity.MaxDevice;
+import uz.codebyz.onlinecoursebackend.userDevice.repository.MaxDeviceRepository;
+
+import java.math.BigDecimal;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -32,19 +38,35 @@ public class DataLoader implements CommandLineRunner {
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TeacherPriceRepository teacherPriceRepository;
+    private final MaxDeviceRepository maxDeviceRepository;
 
     public DataLoader(UserRepository userRepository,
                       TeacherRepository teacherRepository,
                       StudentRepository studentRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder, TeacherPriceRepository teacherPriceRepository, MaxDeviceRepository maxDeviceRepository) {
         this.userRepository = userRepository;
         this.teacherRepository = teacherRepository;
         this.studentRepository = studentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.teacherPriceRepository = teacherPriceRepository;
+        this.maxDeviceRepository = maxDeviceRepository;
     }
 
     @Override
     public void run(String... args) {
+
+        if (maxDeviceRepository.findAll().isEmpty()) {
+            MaxDevice maxDevice = new MaxDevice();
+            maxDevice.setDeviceCount(3);
+            maxDeviceRepository.save(maxDevice);
+        }
+        if (teacherPriceRepository.findAll().isEmpty()) {
+            TeacherPrice teacher = new TeacherPrice();
+            teacher.setFree(true);
+            teacher.setPrice(BigDecimal.valueOf(0));
+            teacherPriceRepository.save(teacher);
+        }
 
         // CREATE DEFAULT ADMIN
         if (!userRepository.existsByEmail(ADMIN_EMAIL)) {

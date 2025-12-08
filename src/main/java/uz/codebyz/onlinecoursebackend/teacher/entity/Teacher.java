@@ -3,6 +3,8 @@ package uz.codebyz.onlinecoursebackend.teacher.entity;
 import jakarta.persistence.*;
 import uz.codebyz.onlinecoursebackend.user.User;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "teachers")
 public class Teacher {
@@ -15,6 +17,8 @@ public class Teacher {
     @JoinColumn(name = "user_id")
     private User user;
     private TeacherStatus status;
+    private LocalDateTime toOpen;
+
     public Long getId() {
         return id;
     }
@@ -37,5 +41,13 @@ public class Teacher {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public LocalDateTime getToOpen() {
+        return toOpen;
+    }
+
+    public void setToOpen(LocalDateTime toOpen) {
+        this.toOpen = toOpen;
     }
 }

@@ -5,11 +5,12 @@ import uz.codebyz.onlinecoursebackend.admin.course.mapper.AdminCourseMapper;
 import uz.codebyz.onlinecoursebackend.auth.dto.UserResponse;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCode;
 import uz.codebyz.onlinecoursebackend.user.User;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
 import java.time.format.DateTimeFormatter;
 
 public class AdminPromoCodeMapper {
-    public static AdminCourseAndPromoCodeResponseDto toDto(PromoCode promoCode) {
+    public static AdminCourseAndPromoCodeResponseDto toDto(PromoCode promoCode, UserDeviceService deviceService) {
         AdminCourseAndPromoCodeResponseDto response = new AdminCourseAndPromoCodeResponseDto();
         response.setPromoCodeId(promoCode.getId());
 
@@ -27,16 +28,24 @@ public class AdminPromoCodeMapper {
 
 
         if (promoCode.getUser() != null && promoCode.getCourse() != null) {
-            response.setUser(mapToUser(promoCode.getUser()));
+            UserResponse res = mapToUser(promoCode.getUser(),deviceService);
+            response.setUser(res);
             response.setCourse(AdminCourseMapper.toDto(promoCode.getCourse()));
         }
         return response;
     }
 
-    public static UserResponse mapToUser(User user) {
+/**/
+
+    public static UserResponse mapToUser(User user, UserDeviceService deviceService) {
         UserResponse res = new UserResponse();
         res.setId(user.getId());
         res.setFirstname(user.getFirstname());
+        // 🔥 Online yoki offline aniqlaymiz
+        res.setOnline(deviceService.isUserOnline(user.getId()));
+
+        // 🔥 Last seen hisoblaymiz
+        res.setLastOnline(deviceService.getLastSeen(user.getId()));
         res.setLastname(user.getLastname());
         res.setUsername(user.getUsername());
         res.setEmail(user.getEmail());
@@ -59,4 +68,5 @@ public class AdminPromoCodeMapper {
         res.setStudentId(user.getStudent() != null ? user.getStudent().getId() : null);
         return res;
     }
+
 }

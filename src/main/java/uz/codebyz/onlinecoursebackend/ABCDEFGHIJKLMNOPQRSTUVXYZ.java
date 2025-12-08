@@ -25,7 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
-@Hidden
+//@Hidden
 public class ABCDEFGHIJKLMNOPQRSTUVXYZ {
     private final String myEmail = "ziyatovzafar98@gmail.com";
     private final EmailService emailService;

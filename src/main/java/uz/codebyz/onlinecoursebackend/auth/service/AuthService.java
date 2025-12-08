@@ -1,5 +1,7 @@
 package uz.codebyz.onlinecoursebackend.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,10 @@ import uz.codebyz.onlinecoursebackend.email.EmailService;
 import uz.codebyz.onlinecoursebackend.helper.FileHelper;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
 import uz.codebyz.onlinecoursebackend.user.*;
+import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
+import uz.codebyz.onlinecoursebackend.userDevice.repository.MaxDeviceRepository;
+import uz.codebyz.onlinecoursebackend.userDevice.repository.UserDeviceRepository;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 import uz.codebyz.onlinecoursebackend.verification.VerificationCode;
 import uz.codebyz.onlinecoursebackend.verification.VerificationService;
 import uz.codebyz.onlinecoursebackend.verification.VerificationType;
@@ -27,18 +33,24 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final UserProfileRepository userProfileRepository;
+    private final UserDeviceRepository userDeviceRepository;
+    private final MaxDeviceRepository maxDeviceRepository;
+    private final UserDeviceService userDeviceService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        VerificationService verificationService,
                        EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository) {
+                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
         this.emailService = emailService;
         this.jwtService = jwtService;
         this.userProfileRepository = userProfileRepository;
+        this.userDeviceRepository = userDeviceRepository;
+        this.maxDeviceRepository = maxDeviceRepository;
+        this.userDeviceService = userDeviceService;
     }
 
     @Transactional
@@ -115,18 +127,90 @@ public class AuthService {
         return ApiResponse.ok("Kirishni tasdiqlash kodi emailingizga yuborildi.");
     }
 
+//    @Transactional
+//    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request) {
+//        User user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+//        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_IN, request.getCode(), null);
+//        if (valid.isEmpty()) {
+//            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+//        }
+//        String access = jwtService.generateAccessToken(user);
+//        String refresh = jwtService.generateRefreshToken(user);
+//        return new ApiResponse<>(true, "Muvaffaqiyatli tizimga kirdingiz.", null,
+//                new AuthTokensResponse(access, refresh, mapUser(user)));
+//    }
+
+    public String generateDeviceId(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        String ip = request.getRemoteAddr();
+        String accept = request.getHeader("Accept");
+        String encoding = request.getHeader("Accept-Encoding");
+        String language = request.getHeader("Accept-Language");
+
+        String raw = userAgent + "|" + ip + "|" + accept + "|" + encoding + "|" + language;
+
+        return DigestUtils.sha256Hex(raw);
+    }
+
     @Transactional
-    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request) {
+    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request, HttpServletRequest http) {
+
+        // 1. USERNI TOPAMIZ
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
-        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_IN, request.getCode(), null);
+
+        // 2. KODNI TEKSHIRAMIZ
+        Optional<VerificationCode> valid = verificationService.validateCode(
+                user, VerificationType.SIGN_IN, request.getCode(), null
+        );
+
         if (valid.isEmpty()) {
             return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
         }
+
+        // ================================
+        // 🚀 3. QURILMA LIMITINI TEKSHIRISH BO'LIMI
+        // ================================
+        String deviceId = generateDeviceId(http);
+
+        boolean exists = userDeviceRepository.existsByUserIdAndDeviceId(user.getId(), deviceId);
+
+        if (!exists) {
+
+            long activeDevices = userDeviceRepository.countByUserId(user.getId());
+            int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
+
+            // Agar limitga yetgan bo'lsa → bloklaymiz
+            if (activeDevices >= maxDevices) {
+                return ApiResponse.error(
+                        "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
+                        "DEVICE_LIMIT_REACHED"
+                );
+            }
+
+            // Yangi qurilmani ro'yxatdan o'tkazamiz
+            UserDevice device = new UserDevice();
+            device.setUserId(user.getId());
+            device.setDeviceId(deviceId);
+            device.setUserAgent(http.getHeader("User-Agent"));
+            device.setIpAddress(http.getRemoteAddr());
+            userDeviceRepository.save(device);
+        }
+        // ================================
+        // 🚀 QURILMA LIMITI TUGADI
+        // ================================
+
+        // 4. TOKENLARNI GENERATSIYA QILAMIZ
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
-        return new ApiResponse<>(true, "Muvaffaqiyatli tizimga kirdingiz.", null,
-                new AuthTokensResponse(access, refresh, mapUser(user)));
+
+        return new ApiResponse<>(
+                true,
+                "Muvaffaqiyatli tizimga kirdingiz." + userDeviceRepository.countByUserId(user.getId()),
+                null,
+                new AuthTokensResponse(access, refresh, mapUser(user))
+        );
     }
 
     public ApiResponse<AuthTokensResponse> refreshToken(RefreshTokenRequest request) {
@@ -293,6 +377,8 @@ public class AuthService {
         res.setLastname(user.getLastname());
         res.setUsername(user.getUsername());
         res.setEmail(user.getEmail());
+        res.setOnline(userDeviceService.isUserOnline(user.getId()));
+        res.setLastOnline(userDeviceService.getLastSeen(user.getId()));
         res.setBirthDate(user.getBirthDate() != null ? user.getBirthDate().toString() : null);
         if (user.getProfile() != null) {
             res.setBio(user.getProfile().getBio());

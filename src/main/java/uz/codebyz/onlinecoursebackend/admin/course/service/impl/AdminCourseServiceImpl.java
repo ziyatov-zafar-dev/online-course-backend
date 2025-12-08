@@ -24,6 +24,7 @@ import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCode;
 import uz.codebyz.onlinecoursebackend.promocode.repository.PromoCodeRepository;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.repository.TeacherRepository;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -42,16 +43,18 @@ public class AdminCourseServiceImpl implements AdminCourseService {
     private final CategoryRepository categoryRepository;
     private final PromoCodeRepository promoCodeRepository;
     private final TeacherRepository teacherRepository;
+    private final UserDeviceService userDeviceService;
     @Value("${course.image.url}")
     private String baseCourseImagePath;
     @Value("${course.video.url}")
     private String baseCourseVideoPath;
 
-    public AdminCourseServiceImpl(CourseRepository courseRepository, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, TeacherRepository teacherRepository) {
+    public AdminCourseServiceImpl(CourseRepository courseRepository, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, TeacherRepository teacherRepository, UserDeviceService userDeviceService) {
         this.courseRepository = courseRepository;
         this.categoryRepository = categoryRepository;
         this.promoCodeRepository = promoCodeRepository;
         this.teacherRepository = teacherRepository;
+        this.userDeviceService = userDeviceService;
     }
 
     //    @Override
@@ -465,7 +468,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         if (pOp.isEmpty())
             return ResponseDto.error("Not Found PromoCode id: " + promoCodeId);
         PromoCode promoCode = pOp.get();
-        AdminCourseAndPromoCodeResponseDto response = AdminPromoCodeMapper.toDto(promoCode);
+        AdminCourseAndPromoCodeResponseDto response = AdminPromoCodeMapper.toDto(promoCode, userDeviceService);
         return new ResponseDto<>(true, "Ok", response);
     }
 
@@ -475,7 +478,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         if (pOp.isEmpty())
             return ResponseDto.error("Not Found code id: " + code);
         PromoCode promoCode = pOp.get();
-        AdminCourseAndPromoCodeResponseDto response = AdminPromoCodeMapper.toDto(promoCode);
+        AdminCourseAndPromoCodeResponseDto response = AdminPromoCodeMapper.toDto(promoCode, userDeviceService);
         return new ResponseDto<>(true, "Ok", response);
     }
 
@@ -512,13 +515,15 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         promoCode.setCreated(CurrentTime.currentTime());
         promoCode.setUpdated(CurrentTime.currentTime());
         promoCode.setPromoCodeUsages(new ArrayList<>());
-        return new ResponseDto<>(true, "Success", AdminPromoCodeMapper.toDto(promoCodeRepository.save(promoCode)));
+        return new ResponseDto<>(true, "Success", AdminPromoCodeMapper.toDto(
+                promoCodeRepository.save(promoCode), userDeviceService));
     }
 
     @Override
     public ResponseDto<List<AdminCourseAndPromoCodeResponseDto>> getAllPromoCodes() {
         List<PromoCode> promoCodes = promoCodeRepository.adminGetAllPromoCodes();
-        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(AdminPromoCodeMapper::toDto).toList();
+        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(promoCode ->
+                AdminPromoCodeMapper.toDto(promoCode, userDeviceService)).toList();
         return new ResponseDto<>(true, "Success", res);
     }
 
@@ -527,7 +532,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
     public ResponseDto<Page<AdminCourseAndPromoCodeResponseDto>> getAllPromoCodes(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<PromoCode> promoCodePage = promoCodeRepository.adminGetAllPromoCodes(pageable);
-        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(AdminPromoCodeMapper::toDto);
+        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(pc -> (AdminPromoCodeMapper.toDto(
+                pc, userDeviceService
+        )));
         return new ResponseDto<>(true, "Success", dtoPage);
     }
 
@@ -538,7 +545,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
             return new ResponseDto<>(false, "Not Found Course id: " + courseId);
         }
         List<PromoCode> promoCodes = promoCodeRepository.adminGetAllPromoCodeByCourseId(courseId);
-        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(AdminPromoCodeMapper::toDto).toList();
+        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(pc -> (AdminPromoCodeMapper.toDto(
+                pc, userDeviceService
+        ))).toList();
         return new ResponseDto<>(true, "Success", res);
     }
 
@@ -549,7 +558,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         }
         Pageable pageable = PageRequest.of(page, size);
         Page<PromoCode> promoCodePage = promoCodeRepository.adminGetAllPromoCodeByCourseId(courseId, pageable);
-        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(AdminPromoCodeMapper::toDto);
+        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(pc -> (AdminPromoCodeMapper.toDto(
+                pc, userDeviceService
+        )));
         return new ResponseDto<>(true, "Success", dtoPage);
     }
 
@@ -559,7 +570,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
             return new ResponseDto<>(false, "Not Found Teacher id: " + teacherId);
         }
         List<PromoCode> promoCodes = promoCodeRepository.adminGetAllPromoCodeByTeacherId(teacherId);
-        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(AdminPromoCodeMapper::toDto).toList();
+        List<AdminCourseAndPromoCodeResponseDto> res = promoCodes.stream().map(pc -> (AdminPromoCodeMapper.toDto(
+                pc, userDeviceService
+        ))).toList();
         return new ResponseDto<>(true, "Success", res);
     }
 
@@ -570,7 +583,9 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         }
         Pageable pageable = PageRequest.of(page, size);
         Page<PromoCode> promoCodePage = promoCodeRepository.adminGetAllPromoCodeByTeacherId(teacherId, pageable);
-        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(AdminPromoCodeMapper::toDto);
+        Page<AdminCourseAndPromoCodeResponseDto> dtoPage = promoCodePage.map(pc -> (AdminPromoCodeMapper.toDto(
+                pc, userDeviceService
+        )));
         return new ResponseDto<>(true, "Success", dtoPage);
     }
 }

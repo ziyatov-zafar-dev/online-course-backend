@@ -3,17 +3,20 @@ package uz.codebyz.onlinecoursebackend.admin.users.mapper;
 import org.springframework.data.domain.Page;
 import uz.codebyz.onlinecoursebackend.admin.users.userDto.AdminUserResponseDto;
 import uz.codebyz.onlinecoursebackend.user.User;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AdminUsersMapper {
-    public static AdminUserResponseDto toDto(User user) {
+    public static AdminUserResponseDto toDto(User user, UserDeviceService deviceService) {
         AdminUserResponseDto res = new AdminUserResponseDto();
         res.setId(user.getId());
         res.setFirstname(user.getFirstname());
         res.setLastname(user.getLastname());
+        res.setOnline(deviceService.isUserOnline(user.getId()));
+        res.setLastOnline(deviceService.getLastSeen(user.getId()));
         res.setUsername(user.getUsername());
         res.setEmail(user.getEmail());
         res.setBirthDate(user.getBirthDate() == null ? "Mavjud emas" :
@@ -36,13 +39,15 @@ public class AdminUsersMapper {
         return res;
     }
 
-    public static List<AdminUserResponseDto> toDto(List<User> users) {
+    public static List<AdminUserResponseDto> toDto(List<User> users, UserDeviceService deviceService) {
         return users.stream().map(
-                AdminUsersMapper::toDto
+                user ->
+                    AdminUsersMapper.toDto(user,deviceService)
         ).collect(Collectors.toList());
     }
 
-    public static Page<AdminUserResponseDto> toDto(Page<User> users) {
-        return users.map(AdminUsersMapper::toDto);
+    public static Page<AdminUserResponseDto> toDto(Page<User> users,UserDeviceService deviceService) {
+        return users.map(user ->
+                AdminUsersMapper.toDto(user,deviceService));
     }
 }

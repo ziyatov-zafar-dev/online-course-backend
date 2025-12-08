@@ -28,6 +28,9 @@ public class ResponseDto<T> {
     public static <T> ResponseDto<T> error(String message) {
         return new ResponseDto<>(false, message, null);
     }
+    public static <T> ResponseDto<T> error(String message,T data) {
+        return new ResponseDto<>(false, message, data);
+    }
 
     public boolean isSuccess() {
         return success;

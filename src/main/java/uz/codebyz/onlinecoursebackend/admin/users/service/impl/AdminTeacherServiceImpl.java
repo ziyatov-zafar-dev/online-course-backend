@@ -11,6 +11,7 @@ import uz.codebyz.onlinecoursebackend.admin.users.teacherDto.AdminCreateTeacherR
 import uz.codebyz.onlinecoursebackend.admin.users.teacherDto.AdminTeacherResponseDto;
 import uz.codebyz.onlinecoursebackend.auth.dto.UserResponse;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
+import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.entity.TeacherStatus;
 import uz.codebyz.onlinecoursebackend.teacher.repository.TeacherRepository;
@@ -18,7 +19,10 @@ import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.user.UserProfile;
 import uz.codebyz.onlinecoursebackend.user.UserRepository;
 import uz.codebyz.onlinecoursebackend.user.UserRole;
+import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,11 +32,15 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
+    private final UserDeviceService userDeviceService;
 
-    public AdminTeacherServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, TeacherRepository teacherRepository) {
+    public AdminTeacherServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
+                                   TeacherRepository teacherRepository,
+                                   UserDeviceService userDeviceService) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.teacherRepository = teacherRepository;
+        this.userDeviceService = userDeviceService;
     }
 
     @Override
@@ -71,14 +79,23 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
         teacher.setUser(user);
         teacher.setStatus(TeacherStatus.OPEN);
 
+        LocalDateTime now = CurrentTime.currentTime();
+
+// 1 oy keyingi vaqt
+        LocalDateTime nextMonth = now.plusMonths(1);
+
+//        teacher.setToOpen(nextMonth);
+
         // 5. Endi teacher’ni saqlaymiz (user_id mavjud!)
         teacher = teacherRepository.save(teacher);
 
         // 6. Ikki tomonlama bog‘laymiz
         user.setTeacher(teacher);
         user = userRepository.save(user);
-
-        return ResponseDto.ok("Teacher added successfully", AdminPromoCodeMapper.mapToUser(user));
+        UserResponse res = AdminPromoCodeMapper.mapToUser(user, userDeviceService);
+        res.setOnline(userDeviceService.isUserOnline(user.getId()));
+        res.setLastOnline(userDeviceService.getLastSeen(user.getId()));
+        return ResponseDto.ok("Teacher added successfully", res);
     }
 
     @Override
@@ -88,7 +105,7 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
             return new ResponseDto<>(false, "Teacher not found");
         }
         Teacher teacher = tOp.get();
-        return new ResponseDto<>(true, "Ok", new AdminTeacherResponseDto(teacherId, AdminPromoCodeMapper.mapToUser(teacher.getUser())));
+        return new ResponseDto<>(true, "Ok", new AdminTeacherResponseDto(teacherId, AdminPromoCodeMapper.mapToUser(teacher.getUser(), userDeviceService)));
     }
 
     @Override
@@ -115,10 +132,11 @@ public class AdminTeacherServiceImpl implements AdminTeacherService {
     }
 
     private List<AdminTeacherResponseDto> getList(List<Teacher> teachers) {
-        return teachers.stream().map(t -> new AdminTeacherResponseDto(t.getId(), AdminPromoCodeMapper.mapToUser(t.getUser()))).collect(Collectors.toList());
+        return teachers.stream().map(t -> new AdminTeacherResponseDto(t.getId(),
+                AdminPromoCodeMapper.mapToUser(t.getUser(), userDeviceService))).collect(Collectors.toList());
     }
 
     private Page<AdminTeacherResponseDto> getPagination(Page<Teacher> teachers) {
-        return teachers.map(AdminTeacherMapper::toDto);
+        return teachers.map(teacher -> AdminTeacherMapper.toDto(teacher, userDeviceService));
     }
 }

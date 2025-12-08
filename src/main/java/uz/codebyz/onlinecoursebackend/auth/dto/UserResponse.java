@@ -3,6 +3,7 @@ package uz.codebyz.onlinecoursebackend.auth.dto;
 import uz.codebyz.onlinecoursebackend.user.UserRole;
 import uz.codebyz.onlinecoursebackend.user.UserStatus;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class UserResponse {
@@ -26,6 +27,24 @@ public class UserResponse {
     private boolean enabled;
     private Long teacherId;
     private UUID studentId;
+    private String lastOnline    ;
+    private Boolean online ;
+
+    public String getLastOnline() {
+        return lastOnline;
+    }
+
+    public void setLastOnline(String lastOnline) {
+        this.lastOnline = lastOnline;
+    }
+
+    public Boolean getOnline() {
+        return online;
+    }
+
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
 
     public UUID getStudentId() {
         return studentId;
