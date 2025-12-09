@@ -294,7 +294,7 @@ public class AuthService {
         attempt.setAttempts(attempt.getAttempts() + 1);
         attempt.setLastAttempt(CurrentTime.currentTime());
 
-        if (attempt.getAttempts() >= maxWrongApptempts) {
+        if (attempt.getAttempts() >= maxWrongAttempts) {
             // attempts:
             // 3 → 1 soat
             // 4 → 2 soat
