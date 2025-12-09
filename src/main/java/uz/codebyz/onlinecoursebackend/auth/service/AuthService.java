@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -162,42 +163,76 @@ public class AuthService {
 //    }
 
     @Transactional
-    public ApiResponse<?> signIn(SignInRequest request, HttpServletRequest http) {
+    public SignInResult signIn(SignInRequest request, HttpServletRequest http) {
 
         String deviceId = generateDeviceId(http);
 
         // 1) DEVICE BLOK TEKSHIRAMIZ
         ApiResponse<?> blockCheck = checkDeviceBlocked(deviceId);
-        if (blockCheck != null) return blockCheck;
+        if (blockCheck != null) {
+            return new SignInResult(blockCheck, HttpStatus.UNAUTHORIZED);
+        }
 
         // 2) USERNI TOPAMIZ
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    handleWrongPassword(deviceId);
-                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
-                });
-
-        if (!user.isEnabled()) {
-            return ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED");
+        User user;
+        try {
+            user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        } catch (BadCredentialsException ex) {
+            handleWrongPassword(deviceId);
+            return new SignInResult(
+                    ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
 
+        // 3) Tasdiqlanmagan bo‘lsa
+        if (!user.isEnabled()) {
+            return new SignInResult(
+                    ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED"),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        // 4) Parol tekshirish
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             handleWrongPassword(deviceId);
-            throw new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+
+            return new SignInResult(
+                    ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
+
+        // 5) User bloklangan bo‘lsa
         if (user.getStatus() == UserStatus.BLOCKED) {
-            return ApiResponse.error("Akkount bloklangan.", "ACCOUNT_BLOCKED");
+            return new SignInResult(
+                    ApiResponse.error("Akkount bloklangan.", "ACCOUNT_BLOCKED"),
+                    HttpStatus.FORBIDDEN
+            );
         }
-        // 3) TO‘G‘RI LOGIN — RESET
+
+        // 6) TO‘G‘RI LOGIN → RESET
         resetAttempts(deviceId);
 
+        // 7) EMAILGA VERIFICATION CODE
+        VerificationCode code = verificationService.createVerification(
+                user, VerificationType.SIGN_IN, null
+        );
 
-        // 4) EMAILGA VERIFICATION CODE
-        VerificationCode code = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
-        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", code.getCode());
+        emailService.sendEmail(
+                user.getEmail(),
+                "Kirish kodi",
+                "Kirishni tasdiqlang.",
+                code.getCode()
+        );
 
-        return ApiResponse.ok("Kirishni tasdiqlash kodi yuborildi.");
+        return new SignInResult(
+                ApiResponse.ok("Kirishni tasdiqlash kodi yuborildi."),
+                HttpStatus.OK
+        );
     }
+
 
 //    @Transactional
 //    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request) {

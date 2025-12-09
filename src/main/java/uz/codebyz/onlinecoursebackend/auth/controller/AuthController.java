@@ -66,15 +66,8 @@ public class AuthController {
 
     @Operation(summary = "Email/parol bilan kirish (kod yuborish bosqichi)")
     @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponse<?>> signIn(@Valid @RequestBody SignInRequest request, HttpServletRequest http) {
-        ApiResponse<?> response = authService.signIn(request, http);
-        HttpStatus status;
-        if (!response.isSuccess()) {
-            status = response.getErrorCode() != null && response.getErrorCode().equals("ACCOUNT_NOT_VERIFIED") ? HttpStatus.BAD_REQUEST : HttpStatus.UNAUTHORIZED;
-        } else {
-            status = HttpStatus.OK;
-        }
-        return ResponseEntity.status(status).body(response);
+    public SignInResult signIn(@Valid @RequestBody SignInRequest request, HttpServletRequest http) {
+        return authService.signIn(request, http);
     }
 
     @Operation(summary = "Kodni tasdiqlab JWT olish")
