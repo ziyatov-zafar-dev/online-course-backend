@@ -11,6 +11,24 @@ public class UserDeviceResponse {
     private LocalDateTime lastActive;
     private LocalDateTime created;
     private boolean isMe;
+    private UUID userId;
+    private IpLocationDto location;
+
+    public IpLocationDto getLocation() {
+        return location;
+    }
+
+    public void setLocation(IpLocationDto location) {
+        this.location = location;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 
     public LocalDateTime getCreated() {
         return created;
@@ -57,7 +75,7 @@ public class UserDeviceResponse {
     }
 
     public void setMe(boolean me) {
-        isMe = me;
+        this.isMe = me;
     }
 
     public UUID getId() {

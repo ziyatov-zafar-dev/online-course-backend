@@ -2,6 +2,9 @@ package uz.codebyz.onlinecoursebackend.userDevice.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.userDevice.dt.UserDeviceResponse;
@@ -18,10 +21,13 @@ import java.util.UUID;
 public class UserDeviceService {
 
     private final UserDeviceRepository userDeviceRepository;
+    private final IpLocationService ipLocationService;
 
-    public UserDeviceService(UserDeviceRepository userDeviceRepository) {
+    public UserDeviceService(UserDeviceRepository userDeviceRepository, IpLocationService ipLocationService) {
         this.userDeviceRepository = userDeviceRepository;
+        this.ipLocationService = ipLocationService;
     }
+
 
     public List<UserDeviceResponse> getDevices(UUID userId, HttpServletRequest request) {
 
@@ -40,10 +46,66 @@ public class UserDeviceService {
                     dto.setIpAddress(device.getIpAddress());
                     dto.setLastActive(device.getLastActive());
                     dto.setCreated(device.getCreatedAt());
-
                     // Hozir ishlatilayotgan qurilma shu bo'lsa → true
                     dto.setMe(device.getDeviceId().equals(currentDeviceId));
+                    dto.setLocation(ipLocationService.getLocation(device.getIpAddress()));
+                    return dto;
+                })
+                .toList();
+    }
 
+    public List<UserDeviceResponse> getAllDevices(HttpServletRequest request, int page, int size) {
+
+        // HOZIRGI QURILMA IDENTIFIKATORI
+        String currentDeviceId = DigestUtils.sha256Hex(
+                request.getHeader("User-Agent") + "-" + request.getRemoteAddr()
+        );
+
+        // PAGE VA SIZE BO‘YICHA DEVICE OLISh
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserDevice> devices = userDeviceRepository.findAll(pageable);
+
+        // DTO GA MAP QILAMIZ
+        return devices.getContent().stream()
+                .map(device -> {
+                    UserDeviceResponse dto = new UserDeviceResponse();
+                    dto.setId(device.getId());
+                    dto.setDeviceId(device.getDeviceId());
+                    dto.setUserAgent(device.getUserAgent());
+                    dto.setIpAddress(device.getIpAddress());
+                    dto.setLastActive(device.getLastActive());
+                    dto.setCreated(device.getCreatedAt());
+                    dto.setUserId(device.getUserId());
+                    dto.setLocation(ipLocationService.getLocation(device.getIpAddress()));
+                    dto.setMe(device.getDeviceId().equals(currentDeviceId));
+                    return dto;
+                })
+                .toList();
+    }
+
+    public List<UserDeviceResponse> getAllDevices(HttpServletRequest request) {
+
+        // HOZIRGI QURILMA IDENTIFIKATORI
+        String currentDeviceId = DigestUtils.sha256Hex(
+                request.getHeader("User-Agent") + "-" + request.getRemoteAddr()
+        );
+
+        // BARCHA QURILMALAR
+        List<UserDevice> devices = userDeviceRepository.findAll();
+
+        // DTO GA MAP QILAMIZ
+        return devices.stream()
+                .map(device -> {
+                    UserDeviceResponse dto = new UserDeviceResponse();
+                    dto.setId(device.getId());
+                    dto.setDeviceId(device.getDeviceId());
+                    dto.setUserAgent(device.getUserAgent());
+                    dto.setIpAddress(device.getIpAddress());
+                    dto.setLastActive(device.getLastActive());
+                    dto.setCreated(device.getCreatedAt());
+                    dto.setUserId(device.getUserId());
+                    dto.setLocation(ipLocationService.getLocation(device.getIpAddress()));
+                    dto.setMe(device.getDeviceId().equals(currentDeviceId));
                     return dto;
                 })
                 .toList();

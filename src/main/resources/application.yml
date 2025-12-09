@@ -150,3 +150,7 @@ swagger:
 #    client-secret: ${PAYPAL_CLIENT_SECRET}
 #    mode: ${PAYPAL_MODE}
 #    api-url: ${PAYPAL_API_URL}
+
+
+location:
+  api: https://ipwho.is/

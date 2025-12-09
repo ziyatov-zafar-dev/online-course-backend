@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.codebyz.onlinecoursebackend.auth.dto.*;
 import uz.codebyz.onlinecoursebackend.common.ApiResponse;
+import uz.codebyz.onlinecoursebackend.device_login_attempts.entity.DeviceLoginAttempt;
+import uz.codebyz.onlinecoursebackend.device_login_attempts.repository.DeviceLoginAttemptRepository;
 import uz.codebyz.onlinecoursebackend.email.EmailService;
+import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.helper.FileHelper;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
 import uz.codebyz.onlinecoursebackend.user.*;
@@ -20,6 +23,7 @@ import uz.codebyz.onlinecoursebackend.verification.VerificationCode;
 import uz.codebyz.onlinecoursebackend.verification.VerificationService;
 import uz.codebyz.onlinecoursebackend.verification.VerificationType;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,12 +40,13 @@ public class AuthService {
     private final UserDeviceRepository userDeviceRepository;
     private final MaxDeviceRepository maxDeviceRepository;
     private final UserDeviceService userDeviceService;
+    private final DeviceLoginAttemptRepository deviceLoginAttemptRepository;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        VerificationService verificationService,
                        EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService) {
+                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
@@ -51,6 +56,7 @@ public class AuthService {
         this.userDeviceRepository = userDeviceRepository;
         this.maxDeviceRepository = maxDeviceRepository;
         this.userDeviceService = userDeviceService;
+        this.deviceLoginAttemptRepository = deviceLoginAttemptRepository;
     }
 
     @Transactional
@@ -111,20 +117,50 @@ public class AuthService {
         return ApiResponse.ok("Akkount muvaffaqiyatli tasdiqlandi.");
     }
 
+    //    @Transactional
+//    public ApiResponse<Object> signIn(SignInRequest request) {
+//        User user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+//        if (!user.isEnabled()) {
+//            return ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED");
+//        }
+//        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+//            throw new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+//        }
+//
+//        VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
+//        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", verificationCode.getCode());
+//        return ApiResponse.ok("Kirishni tasdiqlash kodi emailingizga yuborildi.");
+//    }
     @Transactional
-    public ApiResponse<Object> signIn(SignInRequest request) {
+    public ApiResponse<?> signIn(SignInRequest request, HttpServletRequest http) {
+
+        String deviceId = generateDeviceId(http);
+
+        // 1) DEVICE BLOK TEKSHIRAMIZ
+        ApiResponse<?> blockCheck = checkDeviceBlocked(deviceId);
+        if (blockCheck != null) return blockCheck;
+
+        // 2) USERNI TOPAMIZ
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
-        if (!user.isEnabled()) {
-            return ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED");
-        }
+                .orElseThrow(() -> {
+                    handleWrongPassword(deviceId);
+                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+                });
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            handleWrongPassword(deviceId);
             throw new BadCredentialsException("Login yoki parol noto‘g‘ri.");
         }
 
-        VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
-        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", verificationCode.getCode());
-        return ApiResponse.ok("Kirishni tasdiqlash kodi emailingizga yuborildi.");
+        // 3) TO‘G‘RI LOGIN — RESET
+        resetAttempts(deviceId);
+
+        // 4) EMAILGA VERIFICATION CODE
+        VerificationCode code = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
+        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", code.getCode());
+
+        return ApiResponse.ok("Kirishni tasdiqlash kodi yuborildi.");
     }
 
 //    @Transactional
@@ -153,27 +189,163 @@ public class AuthService {
         return DigestUtils.sha256Hex(raw);
     }
 
+    private void resetAttempts(String deviceId) {
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
+                .findByDeviceId(deviceId)
+                .orElse(null);
+
+        if (attempt != null) {
+            attempt.setAttempts(0);
+            attempt.setBlockedUntil(null);
+            deviceLoginAttemptRepository.save(attempt);
+        }
+    }
+
+    private void handleWrongPassword(String deviceId) {
+
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
+                .findByDeviceId(deviceId)
+                .orElse(null);
+
+        if (attempt == null) {
+            attempt = new DeviceLoginAttempt();
+            attempt.setDeviceId(deviceId);
+            attempt.setAttempts(1);
+            attempt.setLastAttempt(CurrentTime.currentTime());
+            deviceLoginAttemptRepository.save(attempt);
+            return;
+        }
+
+        attempt.setAttempts(attempt.getAttempts() + 1);
+        attempt.setLastAttempt(CurrentTime.currentTime());
+
+        if (attempt.getAttempts() >= 3) {
+            // attempts:
+            // 3 → 1 soat
+            // 4 → 2 soat
+            // 5 → 3 soat ...
+            int hours = attempt.getAttempts() - 2;
+            attempt.setBlockedUntil(CurrentTime.currentTime().plusHours(hours));
+        }
+
+        deviceLoginAttemptRepository.save(attempt);
+    }
+
+    private ApiResponse<?> checkDeviceBlocked(String deviceId) {
+
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
+                .findByDeviceId(deviceId)
+                .orElse(null);
+
+        if (attempt != null && attempt.getBlockedUntil() != null) {
+            if (attempt.getBlockedUntil().isAfter(CurrentTime.currentTime())) {
+
+                Duration d = Duration.between(CurrentTime.currentTime(), attempt.getBlockedUntil());
+
+                return ApiResponse.error(
+                        "Ushbu qurilma vaqtincha bloklangan. Kutish vaqti: " +
+                                d.toMinutes() + " daqiqa qoldi.",
+                        "DEVICE_BLOCKED"
+                );
+            }
+        }
+
+        return null; // bloklanmagan
+    }
+
+//    @Transactional
+//    public ApiResponse<?> verifySignIn(SignInVerifyRequest request, HttpServletRequest http) {
+//
+//        // 1. USERNI TOPAMIZ
+//        User user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+//
+//        // 2. KODNI TEKSHIRAMIZ
+//        Optional<VerificationCode> valid = verificationService.validateCode(
+//                user, VerificationType.SIGN_IN, request.getCode(), null
+//        );
+//
+//        if (valid.isEmpty()) {
+//            return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
+//        }
+//
+//        // ================================
+//        // 🚀 3. QURILMA LIMITINI TEKSHIRISH BO'LIMI
+//        // ================================
+//        String deviceId = generateDeviceId(http);
+//
+//        boolean exists = userDeviceRepository.existsByUserIdAndDeviceId(user.getId(), deviceId);
+//
+//        if (!exists) {
+//
+//            long activeDevices = userDeviceRepository.countByUserId(user.getId());
+//            int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
+//
+//            // Agar limitga yetgan bo'lsa → bloklaymiz
+//            if (activeDevices >= maxDevices) {
+//                return ApiResponse.error(
+//                        "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
+//                        "DEVICE_LIMIT_REACHED",
+//                        userDeviceService.getDevices(user.getId(), http)
+//                );
+//            }
+//
+//            // Yangi qurilmani ro'yxatdan o'tkazamiz
+//            UserDevice device = new UserDevice();
+//            device.setUserId(user.getId());
+//            device.setDeviceId(deviceId);
+//            device.setUserAgent(http.getHeader("User-Agent"));
+//            device.setIpAddress(http.getRemoteAddr());
+//            userDeviceRepository.save(device);
+//        }
+//        // ================================
+//        // 🚀 QURILMA LIMITI TUGADI
+//        // ================================
+//
+//        // 4. TOKENLARNI GENERATSIYA QILAMIZ
+//        String access = jwtService.generateAccessToken(user);
+//        String refresh = jwtService.generateRefreshToken(user);
+//
+//        return new ApiResponse<>(
+//                true,
+//                "Muvaffaqiyatli tizimga kirdingiz." + userDeviceRepository.countByUserId(user.getId()),
+//                null,
+//                new AuthTokensResponse(access, refresh, mapUser(user))
+//        );
+//    }
+
     @Transactional
-    public ApiResponse<AuthTokensResponse> verifySignIn(SignInVerifyRequest request, HttpServletRequest http) {
+    public ApiResponse<?> verifySignIn(SignInVerifyRequest request, HttpServletRequest http) {
 
-        // 1. USERNI TOPAMIZ
+        String deviceId = generateDeviceId(http);
+
+        // 1️⃣ DEVICE BLOK TEKSHIRAMIZ (3 martalik xatolar)
+        ApiResponse<?> blockCheck = checkDeviceBlocked(deviceId);
+        if (blockCheck != null) return blockCheck;
+
+        // 2️⃣ USERNI TOPAMIZ
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+                .orElseThrow(() -> {
+                    handleWrongPassword(deviceId); // noto'g'ri email bo'lsa ham shu device uchun attempt qo'shiladi
+                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+                });
 
-        // 2. KODNI TEKSHIRAMIZ
+        // 3️⃣ TASDIQLASH KODINI TEKSHIRAMIZ
         Optional<VerificationCode> valid = verificationService.validateCode(
                 user, VerificationType.SIGN_IN, request.getCode(), null
         );
 
         if (valid.isEmpty()) {
+            handleWrongPassword(deviceId); // noto'g'ri verification code
             return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
         }
 
-        // ================================
-        // 🚀 3. QURILMA LIMITINI TEKSHIRISH BO'LIMI
-        // ================================
-        String deviceId = generateDeviceId(http);
+        // 4️⃣ TO‘G‘RI VERIFICATION → BLOKNI RESET QILAMIZ
+        resetAttempts(deviceId);
 
+        // ===================================================
+        // 🚀 5️⃣ QURILMA LIMITINI TEKSHIRAMIZ (SENING MEBHORING)
+        // ===================================================
         boolean exists = userDeviceRepository.existsByUserIdAndDeviceId(user.getId(), deviceId);
 
         if (!exists) {
@@ -181,11 +353,11 @@ public class AuthService {
             long activeDevices = userDeviceRepository.countByUserId(user.getId());
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
-            // Agar limitga yetgan bo'lsa → bloklaymiz
             if (activeDevices >= maxDevices) {
                 return ApiResponse.error(
                         "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
-                        "DEVICE_LIMIT_REACHED"
+                        "DEVICE_LIMIT_REACHED",
+                        userDeviceService.getDevices(user.getId(), http)
                 );
             }
 
@@ -197,17 +369,17 @@ public class AuthService {
             device.setIpAddress(http.getRemoteAddr());
             userDeviceRepository.save(device);
         }
-        // ================================
-        // 🚀 QURILMA LIMITI TUGADI
-        // ================================
 
-        // 4. TOKENLARNI GENERATSIYA QILAMIZ
+        // ===================================================
+        // 🚀 6️⃣ TOKENLARNI GENERATSIYA QILAMIZ
+        // ===================================================
+
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
 
         return new ApiResponse<>(
                 true,
-                "Muvaffaqiyatli tizimga kirdingiz." + userDeviceRepository.countByUserId(user.getId()),
+                "Muvaffaqiyatli tizimga kirdingiz.",
                 null,
                 new AuthTokensResponse(access, refresh, mapUser(user))
         );
