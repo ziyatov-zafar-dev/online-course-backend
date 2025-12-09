@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +32,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class AuthService {
+
+    @Value("${login.security.max-wrong-attempts}")
+    private int maxWrongAttempts;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -290,7 +294,7 @@ public class AuthService {
         attempt.setAttempts(attempt.getAttempts() + 1);
         attempt.setLastAttempt(CurrentTime.currentTime());
 
-        if (attempt.getAttempts() >= 3) {
+        if (attempt.getAttempts() >= maxWrongApptempts) {
             // attempts:
             // 3 → 1 soat
             // 4 → 2 soat

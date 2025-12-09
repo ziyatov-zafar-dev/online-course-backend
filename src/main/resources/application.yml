@@ -154,3 +154,8 @@ swagger:
 
 location:
   api: https://ipwho.is/
+
+
+login:
+  security:
+    max-wrong-attempts: 5
