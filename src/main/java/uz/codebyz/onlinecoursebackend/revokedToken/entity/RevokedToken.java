@@ -29,4 +29,20 @@ public class RevokedToken {
     public void setRevokedAt(LocalDateTime revokedAt) {
         this.revokedAt = revokedAt;
     }
+
+    public RevokedToken() {
+    }
+
+    public RevokedToken(LocalDateTime revokedAt) {
+        this.revokedAt = revokedAt;
+    }
+
+    public RevokedToken(String token) {
+        this.token = token;
+    }
+
+    public RevokedToken(String token, LocalDateTime revokedAt) {
+        this.token = token;
+        this.revokedAt = revokedAt;
+    }
 }

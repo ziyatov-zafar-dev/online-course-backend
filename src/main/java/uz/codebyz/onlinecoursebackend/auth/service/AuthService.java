@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,10 @@ import uz.codebyz.onlinecoursebackend.device_login_attempts.repository.DeviceLog
 import uz.codebyz.onlinecoursebackend.email.EmailService;
 import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.helper.FileHelper;
+import uz.codebyz.onlinecoursebackend.revokedToken.entity.RevokedToken;
+import uz.codebyz.onlinecoursebackend.revokedToken.repository.RevokedTokenRepository;
+import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
+import uz.codebyz.onlinecoursebackend.security.jwt.JwtAuthenticationFilter;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
 import uz.codebyz.onlinecoursebackend.user.*;
 import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
@@ -33,6 +38,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class AuthService {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RevokedTokenRepository revokedTokenRepository;
     @Value("${login.security.max-wrong-attempts}")
     private int maxWrongAttempts;
 
@@ -51,7 +58,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        VerificationService verificationService,
                        EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository) {
+                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
@@ -62,7 +69,10 @@ public class AuthService {
         this.maxDeviceRepository = maxDeviceRepository;
         this.userDeviceService = userDeviceService;
         this.deviceLoginAttemptRepository = deviceLoginAttemptRepository;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.revokedTokenRepository = revokedTokenRepository;
     }
+
 
     @Transactional
     public ApiResponse<Object> signUp(SignUpRequest request) {
@@ -678,5 +688,19 @@ public class AuthService {
         res.setStatus(user.getStatus());
         res.setEnabled(user.isEnabled());
         return res;
+    }
+
+    public ResponseEntity<?> logout(HttpServletRequest request, UserPrincipal principal) {
+        User user = principal.getUser();
+        String token = jwtAuthenticationFilter.extractToken(request);
+        String deviceId = jwtService.extractDeviceId(request);
+
+        // token revoked jadvaliga qo‘shiladi
+        revokedTokenRepository.save(new RevokedToken(token));
+
+        // qurilmani o'chirish
+        userDeviceRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
+
+        return ResponseEntity.ok(ApiResponse.ok("Logged out"));
     }
 }

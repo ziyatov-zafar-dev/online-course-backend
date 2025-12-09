@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.user.User;
@@ -29,6 +30,11 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(decodeSecret(secret));
         this.accessExpirationMs = accessExpirationMs;
         this.refreshExpirationMs = refreshExpirationMs;
+    }
+    public String extractDeviceId(HttpServletRequest request) {
+        String ua = request.getHeader("User-Agent");
+        String ip = request.getRemoteAddr();
+        return org.apache.commons.codec.digest.DigestUtils.sha256Hex(ua + "-" + ip);
     }
 
     public String generateAccessToken(User user) {

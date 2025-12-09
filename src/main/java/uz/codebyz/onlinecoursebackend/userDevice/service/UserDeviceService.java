@@ -41,6 +41,7 @@ public class UserDeviceService {
                 .map(device -> {
                     UserDeviceResponse dto = new UserDeviceResponse();
                     dto.setId(device.getId());
+                    dto.setUserId(device.getUserId());
                     dto.setDeviceId(device.getDeviceId());
                     dto.setUserAgent(device.getUserAgent());
                     dto.setIpAddress(device.getIpAddress());
