@@ -89,14 +89,41 @@ public class AuthService {
     }
 
     @Transactional
-    public ApiResponse<Object> verifySignUp(SignUpVerifyRequest request) {
+    public ApiResponse<?> verifySignUp(SignUpVerifyRequest request, HttpServletRequest http) {
+
+        String deviceId = generateDeviceId(http);
+
+        // 1) DEVICE BLOK TEKSHIRISH
+        ApiResponse<?> blockCheck = checkDeviceBlocked(deviceId);
+        if (blockCheck != null) return blockCheck;
+
+        // 2) USERNI TOPAMIZ
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
-        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_UP, request.getCode(), null);
+                .orElseThrow(() -> {
+                    handleWrongPassword(deviceId);
+                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+                });
+
+        // 3) KODNI TEKSHIRISH
+        Optional<VerificationCode> valid = verificationService.validateCode(
+                user,
+                VerificationType.SIGN_UP,
+                request.getCode(),
+                null
+        );
+
         if (valid.isEmpty()) {
+            handleWrongPassword(deviceId);
             return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
         }
+
+        // 🔥 4) TO‘G‘RI KOD → ATTEMPT RESET
+        resetAttempts(deviceId);
+
+        // 🔥 5) USERNI FAOLLASHTIRAMIZ
         user.setEnabled(true);
+
+        // 🔥 6) PROFILE YO‘Q BO‘LSA YARATAMIZ
         if (user.getProfile() == null) {
             UserProfile profile = new UserProfile();
             profile.setUser(user);
@@ -107,15 +134,16 @@ public class AuthService {
             profile.setLinkedin(null);
             profile.setTwitter(null);
             profile.setFacebook(null);
-            // PROFILE saqlanadi
-            userProfileRepository.save(profile);
 
-            // User-ga biriktiriladi
+            userProfileRepository.save(profile);
             user.setProfile(profile);
         }
-        user = userRepository.save(user);
+
+        userRepository.save(user);
+
         return ApiResponse.ok("Akkount muvaffaqiyatli tasdiqlandi.");
     }
+
 
     //    @Transactional
 //    public ApiResponse<Object> signIn(SignInRequest request) {
@@ -132,6 +160,7 @@ public class AuthService {
 //        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", verificationCode.getCode());
 //        return ApiResponse.ok("Kirishni tasdiqlash kodi emailingizga yuborildi.");
 //    }
+
     @Transactional
     public ApiResponse<?> signIn(SignInRequest request, HttpServletRequest http) {
 
@@ -148,13 +177,20 @@ public class AuthService {
                     return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
                 });
 
+        if (!user.isEnabled()) {
+            return ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED");
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             handleWrongPassword(deviceId);
             throw new BadCredentialsException("Login yoki parol noto‘g‘ri.");
         }
-
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            return ApiResponse.error("Akkount bloklangan.", "ACCOUNT_BLOCKED");
+        }
         // 3) TO‘G‘RI LOGIN — RESET
         resetAttempts(deviceId);
+
 
         // 4) EMAILGA VERIFICATION CODE
         VerificationCode code = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
@@ -224,7 +260,12 @@ public class AuthService {
             // 3 → 1 soat
             // 4 → 2 soat
             // 5 → 3 soat ...
-            int hours = attempt.getAttempts() - 2;
+            int hours;
+            if (attempt.getAttempts() < 10) {
+                hours = attempt.getAttempts() - 2;
+            } else {
+                hours = 24 * 7;
+            }
             attempt.setBlockedUntil(CurrentTime.currentTime().plusHours(hours));
         }
 
@@ -242,11 +283,28 @@ public class AuthService {
 
                 Duration d = Duration.between(CurrentTime.currentTime(), attempt.getBlockedUntil());
 
+                long seconds = d.getSeconds();
+
+                long hours = seconds / 3600;
+                long minutes = (seconds % 3600) / 60;
+                long secs = seconds % 60;
+
+                String message;
+
+// Formatni yasalishi
+                if (hours > 0) {
+                    message = hours + " soat " + minutes + " daqiqa " + secs + " sekund qoldi.";
+                } else if (minutes > 0) {
+                    message = minutes + " daqiqa " + secs + " sekund qoldi.";
+                } else {
+                    message = secs + " sekund qoldi.";
+                }
+
                 return ApiResponse.error(
-                        "Ushbu qurilma vaqtincha bloklangan. Kutish vaqti: " +
-                                d.toMinutes() + " daqiqa qoldi.",
+                        "Ushbu qurilma vaqtincha bloklangan. Kutish vaqti: " + message,
                         "DEVICE_BLOCKED"
                 );
+
             }
         }
 

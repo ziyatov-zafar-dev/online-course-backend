@@ -58,16 +58,16 @@ public class AuthController {
 
     @Operation(summary = "Sign-up kodi bilan tasdiqlash")
     @PostMapping("/sign-up/verify")
-    public ResponseEntity<ApiResponse<Object>> verifySignUp(@Valid @RequestBody SignUpVerifyRequest request) {
-        ApiResponse<Object> response = authService.verifySignUp(request);
+    public ResponseEntity<ApiResponse<?>> verifySignUp(@Valid @RequestBody SignUpVerifyRequest request, HttpServletRequest http) {
+        ApiResponse<?> response = authService.verifySignUp(request, http);
         HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
     }
 
     @Operation(summary = "Email/parol bilan kirish (kod yuborish bosqichi)")
     @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponse<?>> signIn(@Valid @RequestBody SignInRequest request,HttpServletRequest http) {
-        ApiResponse<?> response = authService.signIn(request,http);
+    public ResponseEntity<ApiResponse<?>> signIn(@Valid @RequestBody SignInRequest request, HttpServletRequest http) {
+        ApiResponse<?> response = authService.signIn(request, http);
         HttpStatus status;
         if (!response.isSuccess()) {
             status = response.getErrorCode() != null && response.getErrorCode().equals("ACCOUNT_NOT_VERIFIED") ? HttpStatus.BAD_REQUEST : HttpStatus.UNAUTHORIZED;
