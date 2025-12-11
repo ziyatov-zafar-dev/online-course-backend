@@ -7,6 +7,7 @@ import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.module.entity.Module;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCode;
 import uz.codebyz.onlinecoursebackend.skill.entity.Skill;
+import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,11 +25,11 @@ public class Course {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-    /*
-        @ManyToOne(fetch = FetchType.EAGER)
-        @JoinColumn(name = "teacher_id", nullable = false)
-        private Teacher teacher;
-    */
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private Teacher teacher;
+
     private String name;
     private String description;
     private Boolean active;
@@ -146,6 +147,14 @@ public class Course {
         this.promoCourseVideoFileSize = promoCourseVideoFileSize;
     }
 
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
 
     public BigDecimal getDiscountPrice() {
         return discountPrice;

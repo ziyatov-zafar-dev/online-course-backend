@@ -1,21 +1,21 @@
 package uz.codebyz.onlinecoursebackend.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class SignInVerifyRequest {
-    @Email
     @NotBlank
-    private String email;
+    private String login;
     @NotBlank
     private String code;
 
-    public String getEmail() {
-        return email;
+    public String getLogin() {
+        return login;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getCode() {

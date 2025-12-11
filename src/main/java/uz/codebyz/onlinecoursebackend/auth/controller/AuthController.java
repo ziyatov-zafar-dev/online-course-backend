@@ -65,7 +65,7 @@ public class AuthController {
         return ResponseEntity.status(status).body(response);
     }
 
-    @Operation(summary = "Email/parol bilan kirish (kod yuborish bosqichi)")
+    @Operation(summary = "Email yoki username va parol bilan kirish (kod yuborish bosqichi)")
     @PostMapping("/sign-in")
     public SignInResult signIn(@Valid @RequestBody SignInRequest request, HttpServletRequest http) {
         return authService.signIn(request, http);

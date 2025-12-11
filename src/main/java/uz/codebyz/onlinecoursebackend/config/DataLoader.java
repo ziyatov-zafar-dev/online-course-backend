@@ -1,5 +1,6 @@
 package uz.codebyz.onlinecoursebackend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -53,12 +54,15 @@ public class DataLoader implements CommandLineRunner {
         this.maxDeviceRepository = maxDeviceRepository;
     }
 
+    @Value("${login.security.max-wrong-attempts}")
+    private int maxWrongAttempts;
+
     @Override
     public void run(String... args) {
 
         if (maxDeviceRepository.findAll().isEmpty()) {
             MaxDevice maxDevice = new MaxDevice();
-            maxDevice.setDeviceCount(3);
+            maxDevice.setDeviceCount(maxWrongAttempts);
             maxDeviceRepository.save(maxDevice);
         }
         if (teacherPriceRepository.findAll().isEmpty()) {
