@@ -288,14 +288,12 @@ public class AuthService {
         DeviceLoginAttempt attempt = deviceLoginAttemptRepository
                 .findByDeviceId(deviceId)
                 .orElse(null);
-
         if (attempt != null) {
             attempt.setAttempts(0);
             attempt.setBlockedUntil(null);
             deviceLoginAttemptRepository.save(attempt);
         }
     }
-
     private void handleWrongPassword(String deviceId) {
 
         DeviceLoginAttempt attempt = deviceLoginAttemptRepository
@@ -523,7 +521,7 @@ public class AuthService {
                 .orElseThrow(() -> {
                     handleWrongPassword(deviceId);
                     return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
-                });        // 3️⃣ TASDIQLASH KODINI TEKSHIRAMIZ
+                });
         Optional<VerificationCode> valid = verificationService.validateCode(
                 user, VerificationType.SIGN_IN, request.getCode(), null
         );

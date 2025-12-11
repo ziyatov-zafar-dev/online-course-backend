@@ -158,3 +158,8 @@ location:
 login:
   security:
     max-wrong-attempts: 5
+
+admin:
+  email: ziyatovzafar98@gmail.com
+  password: Zafar123$
+  username: admin

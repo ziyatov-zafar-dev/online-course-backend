@@ -364,7 +364,8 @@ public class AdminCourseServiceImpl implements AdminCourseService {
     }
 
     @Override
-    public ResponseDto<AdminCourseResponseDto> updateCoursePricing(UUID courseId, AdminCoursePricingRequestDto request) {
+    public ResponseDto<AdminCourseResponseDto> updateCoursePricing(UUID courseId,
+                                                                   AdminCoursePricingRequestDto request) {
 
         Optional<Course> cOp = courseRepository.findAdminByCourseId(courseId);
         if (cOp.isEmpty())

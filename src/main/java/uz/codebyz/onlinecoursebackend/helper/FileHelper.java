@@ -27,7 +27,6 @@ public class FileHelper {
         double result;
         String value;
         String unit;
-
         if (size < 1024) {
             return String.valueOf(size).concat(" B");
         } else if (size < 1024L * 1024) {

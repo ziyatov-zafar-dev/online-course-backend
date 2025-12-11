@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PromoCodeRepository extends JpaRepository<PromoCode, UUID> {
-    @Query("select p from PromoCode p where (p.id=:id)")
+    @Query("select p from PromoCode p where (p.id=:id and p.active=true )")
     Optional<PromoCode> adminFindById(@Param("id") UUID promoCodeId);
 
 
@@ -23,10 +23,10 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, UUID> {
     @Query("select count(pc) > 0 from PromoCode pc where pc.code = :code")
     boolean existsByCode(@Param("code") String code);
 
-    @Query("select pc from PromoCode pc order by pc.created")
+    @Query("select pc from PromoCode pc where (pc.active=true ) order by pc.created")
     List<PromoCode> adminGetAllPromoCodes();
 
-    @Query("select pc from PromoCode pc order by pc.created")
+    @Query("select pc from PromoCode pc where (pc.active=true ) order by pc.created")
     Page<PromoCode> adminGetAllPromoCodes(Pageable pageable);
 
 
@@ -55,5 +55,9 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, UUID> {
             """)
     List<PromoCode> adminGetAllPromoCodeByTeacherId(@Param("teacherId") Long teacherId);
 
-
+    /// /////////teacher uchun
+    @Query("select p from PromoCode p where (p.id=:id)")
+    Optional<PromoCode> teacherFindById(@Param("id") UUID promoCodeId);
+    @Query("select pc from PromoCode pc where (pc.user.id=:userid and pc.active=true) order by pc.created")
+    Page<PromoCode> teacherGetAllPromoCodes(@Param("userid") UUID userid, Pageable pageable);
 }

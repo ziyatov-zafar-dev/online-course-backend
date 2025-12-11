@@ -23,15 +23,11 @@ import java.math.BigDecimal;
 @Component
 public class DataLoader implements CommandLineRunner {
 
-    private static final String ADMIN_EMAIL = "ziyatovzafar98@gmail.com";
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "Admin@123";
-
     private static final String TEACHER_EMAIL = "qayumahad078@gmail.com";
     private static final String TEACHER_USERNAME = "teacher";
     private static final String TEACHER_PASSWORD = "Teacher@123";
 
-    private static final String STUDENT_EMAIL = "zziyatov811@gmail.com";
+    private static final String STUDENT_EMAIL = "ziyatovzafar1004@gmail.com";
     private static final String STUDENT_USERNAME = "student";
     private static final String STUDENT_PASSWORD = "Student@123";
 
@@ -56,6 +52,12 @@ public class DataLoader implements CommandLineRunner {
 
     @Value("${login.security.max-wrong-attempts}")
     private int maxWrongAttempts;
+    @Value("${admin.email}")
+    private String adminEmail;
+    @Value("${admin.username}")
+    private String adminUsername;
+    @Value("${admin.password}")
+    private String adminPassword;
 
     @Override
     public void run(String... args) {
@@ -73,13 +75,13 @@ public class DataLoader implements CommandLineRunner {
         }
 
         // CREATE DEFAULT ADMIN
-        if (!userRepository.existsByEmail(ADMIN_EMAIL)) {
+        if (!userRepository.existsByEmail(adminEmail)) {
             User admin = new User();
             admin.setFirstname("Super");
             admin.setLastname("Admin");
-            admin.setEmail(ADMIN_EMAIL);
-            admin.setUsername(resolveUsername(ADMIN_USERNAME));
-            admin.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
+            admin.setEmail(adminEmail);
+            admin.setUsername(resolveUsername(adminUsername));
+            admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRole(UserRole.ADMIN);
             admin.setStatus(UserStatus.ACTIVE);
             admin.setEnabled(true);

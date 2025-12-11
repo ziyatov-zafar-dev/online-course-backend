@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CourseRepository extends JpaRepository<Course, UUID> {
-    @Query("select c from Course c where (c.deleted=false and c.active=true and c.id=:cid) order by c.orderNumber")
+    @Query("select c from Course c where (c.deleted=false and c.active=true and c.id=:cid) ")
     Optional<Course> findAdminByCourseId(@Param("cid") UUID courseId);
 
     @Query("""
@@ -54,4 +54,59 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @Query("select c from Course c where (c.active=true and c.deleted=false and c.slug=:slug)")
     Optional<Course> findAdminBySlug(@Param("slug") String slug);
+
+
+    @Query("SELECT c from Course c where (c.active=true and c.deleted=false and c.teacher.id=:teacherId) order by c.orderNumber asc")
+    List<Course> teacherGetMyCourses(@Param("teacherId") Long teacherId);
+
+
+    @Query("SELECT c from Course c where (c.active=true and c.deleted=false and c.teacher.id=:teacherId) order by c.orderNumber asc")
+    Page<Course> teacherGetMyCourses(@Param("teacherId") Long teacherId, Pageable pageable);
+
+    @Query("select c from Course c where (c.deleted=false and c.active=true and c.id=:cid)")
+    Optional<Course> findTeacherByCourseId(@Param("cid") UUID courseId);
+
+    @Query("select c from Course c where (c.slug=:slug)")
+    Optional<Course> findTeacherByCourseSlug(@Param("slug") String slug);
+
+
+    @Query("""
+            select c from Course c
+            where (c.category.id=:categoryId and c.teacher.id=:teacherId and c.active=true and c.deleted=false)           
+            order by c.orderNumber asc
+            """)
+    Page<Course> teacherGetMyCoursesCategoryById(@Param("teacherId")
+                                                 Long teacherId, @Param("categoryId") UUID catId,
+                                                 Pageable pageable);
+
+    @Query("""
+            select c from Course c
+            where (c.category.id=:categoryId and c.teacher.id=:teacherId and c.active=true and c.deleted=false)           
+            order by c.orderNumber asc
+            """)
+    List<Course> teacherGetMyCoursesCategoryById(@Param("teacherId")
+                                                 Long teacherId, @Param("categoryId") UUID catId);
+
+    @Query("""
+            select c from Course c where (
+                        c.active=true and c.deleted=false
+                                    and c.status=:status and c.teacher.id=:teacherId
+                                    )
+            order by c.orderNumber
+            """)
+    Page<Course> getTeacherAllByStatus(@Param("teacherId") Long teacherId,
+                                       @Param("status") CourseStatus status, Pageable pageable);
+
+
+    @Query("""
+            select c from Course c where (
+                        c.active=true and c.deleted=false
+                                    and c.status=:status and c.teacher.id=:teacherId
+                                    )
+            order by c.orderNumber
+            """)
+    List<Course> getTeacherAllByStatus(@Param("teacherId") Long teacherId,
+                                       @Param("status") CourseStatus status);
+
+
 }

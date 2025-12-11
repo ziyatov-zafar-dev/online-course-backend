@@ -74,4 +74,16 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     @Query("select c from Category c where (c.active=true and c.deleted=false and c.status=:status)")
     public List<Category> findAdminAllActiveByStatus(@Param("status") CategoryStatus status);
+
+    /// ///////////////teachers
+    ///
+    @Query("select c from Category c where" +
+            " (c.active=true and c.deleted=false and " +
+            "c.status=uz.codebyz.onlinecoursebackend.category.entity.CategoryStatus.OPEN)" +
+            " order by c.orderNumber asc")
+    public List<Category>teacherFindAllCategories();
+    @Query("select c from Category c where c.slug=:slug")
+    public Optional<Category>teacherFindBySlug(@Param("slug") String slug);
+    @Query("select c from Category c where(c.active=true  and c.deleted = false and c.id=:id) ")
+    public Optional<Category> teacherFindById(@Param("id") UUID id);
 }

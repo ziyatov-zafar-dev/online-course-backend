@@ -4,6 +4,7 @@ import uz.codebyz.onlinecoursebackend.user.UserRole;
 import uz.codebyz.onlinecoursebackend.user.UserStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class UserResponse {
@@ -21,7 +22,7 @@ public class UserResponse {
     private String twitter;
     private String facebook;
     private String instagram;
-    private java.util.List<ProfileImageResponse> images;
+    private List<ProfileImageResponse> images;
     private UserRole role;
     private UserStatus status;
     private boolean enabled;

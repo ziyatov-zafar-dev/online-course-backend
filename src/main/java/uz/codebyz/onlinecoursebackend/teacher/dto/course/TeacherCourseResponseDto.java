@@ -1,7 +1,6 @@
-package uz.codebyz.onlinecoursebackend.teacher.course.dto;
+package uz.codebyz.onlinecoursebackend.teacher.dto.course;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseSkillResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.module.dto.AdminModuleResponseDto;
 
@@ -14,8 +13,12 @@ import java.util.UUID;
 public class TeacherCourseResponseDto {
     @Schema(description = "Kurs id")
     private UUID courseId;
+    private Long teacherId;
+    private UUID categoryId;
     @Schema(description = "Kurs nomi")
     private String name;
+    private String updated;
+    private String created;
     @Schema(description = "Kurs tavsifi")
     private String description;
     @Schema(description = "Kurs slug")
@@ -42,7 +45,8 @@ public class TeacherCourseResponseDto {
 
     private LocalDateTime discountStartAt;
     @Schema(description = "Chegirma tugash vaqti")
-
+    private BigDecimal price;
+    private BigDecimal finalPrice;
     private LocalDateTime discountEndAt;
     private String imgName;
     private String imgUrl;
@@ -52,10 +56,8 @@ public class TeacherCourseResponseDto {
     private String promoCourseVideoFileName;
     private Long promoCourseVideoFileSize;
     private String promoCourseVideoFileSizeMB;
-    private BigDecimal price;
-    private BigDecimal finalPrice;
-    private List<AdminModuleResponseDto> modules;
-    private List<AdminCourseSkillResponseDto> skills;
+  /*  private List<AdminModuleResponseDto> modules;
+    private List<AdminCourseSkillResponseDto> skills;*/
 
     public String getImgSizeMB() {
         return imgSizeMB;
@@ -130,8 +132,41 @@ public class TeacherCourseResponseDto {
         this.telegramChannelLink = telegramChannelLink;
     }
 
+    public Long getTeacherId() {
+        return teacherId;
+    }
+
+    public void setTeacherId(Long teacherId) {
+        this.teacherId = teacherId;
+    }
+
+    public UUID getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(UUID categoryId) {
+        this.categoryId = categoryId;
+    }
+
     public Boolean getHasTelegramGroup() {
+
         return hasTelegramGroup;
+    }
+
+    public String getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(String updated) {
+        this.updated = updated;
+    }
+
+    public String getCreated() {
+        return created;
+    }
+
+    public void setCreated(String created) {
+        this.created = created;
     }
 
     public void setHasTelegramGroup(Boolean hasTelegramGroup) {
@@ -150,13 +185,6 @@ public class TeacherCourseResponseDto {
         return status;
     }
 
-    public List<AdminCourseSkillResponseDto> getSkills() {
-        return skills;
-    }
-
-    public void setSkills(List<AdminCourseSkillResponseDto> skills) {
-        this.skills = skills;
-    }
 
     public void setStatus(Map<String, String> status) {
         this.status = status;
@@ -258,11 +286,4 @@ public class TeacherCourseResponseDto {
         this.promoCourseVideoFileSize = promoCourseVideoFileSize;
     }
 
-    public List<AdminModuleResponseDto> getModules() {
-        return modules;
-    }
-
-    public void setModules(List<AdminModuleResponseDto> modules) {
-        this.modules = modules;
-    }
 }
