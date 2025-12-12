@@ -26,6 +26,7 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final DeviceActivityFilter deviceActivityFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -33,12 +34,15 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          CustomUserDetailsService userDetailsService,
-                          CustomOAuth2UserService customOAuth2UserService,
-                          OAuth2SuccessHandler oAuth2SuccessHandler,
-                          OAuth2FailureHandler oAuth2FailureHandler,
-                          RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
+
+    public SecurityConfig(
+            DeviceActivityFilter deviceActivityFilter, JwtAuthenticationFilter jwtAuthenticationFilter,
+            CustomUserDetailsService userDetailsService,
+            CustomOAuth2UserService customOAuth2UserService,
+            OAuth2SuccessHandler oAuth2SuccessHandler,
+            OAuth2FailureHandler oAuth2FailureHandler,
+            RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
+        this.deviceActivityFilter = deviceActivityFilter;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.customOAuth2UserService = customOAuth2UserService;
@@ -57,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/sign-in", "/api/auth/sign-in/verify",
                                 "/api/auth/sign-up", "/api/auth/sign-up/verify",
                                 "/api/auth/forgot-password", "/api/auth/reset-password",
-                                "/api/auth/refresh-token", "/api/auth/gemini/**","api/auth/**",
+                                "/api/auth/refresh-token", "/api/auth/gemini/**", "api/auth/**",
                                 "/uploads/**",
                                 "/oauth2/**", "/login/oauth2/**",
                                 "/swagger-ui/**", "/v3/api-docs/**")
@@ -73,7 +77,9 @@ public class SecurityConfig {
                         .failureHandler(oAuth2FailureHandler)
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint));
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(deviceActivityFilter, DeviceActivityFilter.class);
+
         return http.build();
     }
 
@@ -86,20 +92,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-//
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowedOrigins(List.of("*"));
-//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-//        config.setAllowedHeaders(List.of("*"));
-//        config.setExposedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
-//        config.setAllowCredentials(false);
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//        return source;
-//    }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
