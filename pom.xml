@@ -38,38 +38,32 @@
     <!-- ===================== -->
     <dependencies>
 
-        <!-- 🌐 WEB (Webhook uchun) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 🔐 SECURITY -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- 🗄 JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- ✅ VALIDATION -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- 🐘 POSTGRES -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🔑 JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -88,14 +82,12 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🤖 TELEGRAM (FAQAT META – webhook uchun) -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-meta</artifactId>
             <version>6.9.7.1</version>
         </dependency>
 
-        <!-- 📄 JAXB (XML xatolari bo‘lmasligi uchun) -->
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
@@ -105,14 +97,12 @@
             <artifactId>jaxb-runtime</artifactId>
         </dependency>
 
-        <!-- 📚 SWAGGER -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.5.0</version>
         </dependency>
 
-        <!-- 🧪 TEST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
