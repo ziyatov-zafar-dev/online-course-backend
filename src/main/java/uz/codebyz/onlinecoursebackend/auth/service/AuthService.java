@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,6 +41,8 @@ public class AuthService {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RevokedTokenRepository revokedTokenRepository;
+    @Value("${login.security.max-wrong-attempts}")
+    private int maxWrongAttempts;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -295,6 +298,7 @@ public class AuthService {
             deviceLoginAttemptRepository.save(attempt);
         }
     }
+
     private void handleWrongPassword(String deviceId) {
 
         DeviceLoginAttempt attempt = deviceLoginAttemptRepository
@@ -313,7 +317,7 @@ public class AuthService {
         attempt.setAttempts(attempt.getAttempts() + 1);
         attempt.setLastAttempt(CurrentTime.currentTime());
 
-        if (attempt.getAttempts() >= maxDeviceRepository.getMaxDeviceCount().getDeviceCount()) {
+        if (attempt.getAttempts() >= maxWrongAttempts) {
             // attempts:
             // 3 → 1 soat
             // 4 → 2 soat

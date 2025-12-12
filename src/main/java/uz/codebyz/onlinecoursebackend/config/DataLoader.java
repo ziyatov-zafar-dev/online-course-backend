@@ -50,8 +50,8 @@ public class DataLoader implements CommandLineRunner {
         this.maxDeviceRepository = maxDeviceRepository;
     }
 
-    @Value("${login.security.max-wrong-attempts}")
-    private int maxWrongAttempts;
+    @Value("${login.device.count}")
+    private int maxDeviceCount;
     @Value("${admin.email}")
     private String adminEmail;
     @Value("${admin.username}")
@@ -64,7 +64,7 @@ public class DataLoader implements CommandLineRunner {
 
         if (maxDeviceRepository.findAll().isEmpty()) {
             MaxDevice maxDevice = new MaxDevice();
-            maxDevice.setDeviceCount(maxWrongAttempts);
+            maxDevice.setDeviceCount(maxDeviceCount);
             maxDeviceRepository.save(maxDevice);
         }
         if (teacherPriceRepository.findAll().isEmpty()) {

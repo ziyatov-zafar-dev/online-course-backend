@@ -2,10 +2,7 @@ package uz.codebyz.onlinecoursebackend.admin.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uz.codebyz.onlinecoursebackend.admin.device.service.DeviceService;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 
@@ -22,4 +19,11 @@ public class AdminDeviceLimitRestController {
     public ResponseEntity<ResponseDto<?>> changeDeviceLimit(@PathVariable("limit") Integer limit) {
         return new ResponseEntity<>(deviceService.changeDeviceLimit(limit), HttpStatus.OK);
     }
+
+
+    @GetMapping("get-device-limit")
+    public ResponseEntity<ResponseDto<Integer>> getDeviceLimit(@PathVariable("limit") Integer limit) {
+        return new ResponseEntity<>(deviceService.getDeviceLimit(), HttpStatus.OK);
+    }
+
 }

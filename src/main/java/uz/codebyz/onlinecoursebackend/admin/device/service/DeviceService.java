@@ -4,4 +4,5 @@ import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 
 public interface DeviceService {
     ResponseDto<?>changeDeviceLimit(Integer limit);
+    ResponseDto<Integer>getDeviceLimit();
 }
