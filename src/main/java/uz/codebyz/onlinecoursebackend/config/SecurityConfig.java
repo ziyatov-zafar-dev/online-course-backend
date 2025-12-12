@@ -77,8 +77,9 @@ public class SecurityConfig {
                         .failureHandler(oAuth2FailureHandler)
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint));
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(deviceActivityFilter, DeviceActivityFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(deviceActivityFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
