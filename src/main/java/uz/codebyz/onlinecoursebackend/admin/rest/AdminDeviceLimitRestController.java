@@ -22,7 +22,7 @@ public class AdminDeviceLimitRestController {
 
 
     @GetMapping("get-device-limit")
-    public ResponseEntity<ResponseDto<Integer>> getDeviceLimit(@PathVariable("limit") Integer limit) {
+    public ResponseEntity<ResponseDto<Integer>> getDeviceLimit() {
         return new ResponseEntity<>(deviceService.getDeviceLimit(), HttpStatus.OK);
     }
 
