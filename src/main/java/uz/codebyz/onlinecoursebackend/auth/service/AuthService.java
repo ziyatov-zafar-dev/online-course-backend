@@ -748,7 +748,7 @@ public class AuthService {
         boolean userOnline = userDeviceService.isUserOnline(user.getId());
         res.setOnline(userOnline);
 //        res.setLastOnline(userDeviceService.getLastSeen(user.getId()));
-        res.setLastOnline(userOnline ? LocalDate.now().toString() : userDeviceService.getLastSeen(user.getId()));
+        res.setLastOnline(userOnline ? CurrentTime.currentTime().toString() : userDeviceService.getLastSeen(user.getId()));
         res.setBirthDate(user.getBirthDate() != null ? user.getBirthDate().toString() : null);
         if (user.getProfile() != null) {
             res.setBio(user.getProfile().getBio());
