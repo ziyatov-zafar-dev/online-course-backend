@@ -14,6 +14,7 @@ import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -125,11 +126,11 @@ public class UserDeviceService {
         return userDeviceRepository.findAllByUserId(userId)
                 .stream()
                 .map(UserDevice::getLastActive)
+                .filter(Objects::nonNull)
                 .max(LocalDateTime::compareTo)
                 .map(this::formatDuration)
                 .orElse("Hech qachon online bo‘lmagan.");
     }
-
 
     private String formatDuration(LocalDateTime last) {
         Duration diff = Duration.between(last, CurrentTime.currentTime());

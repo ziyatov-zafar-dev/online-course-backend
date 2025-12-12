@@ -5,14 +5,14 @@ spring:
     name: CodeByZ
   datasource:
     driver-class-name: org.postgresql.Driver
-#    url: jdbc:postgresql://127.0.0.1:5432/newdb
+    #    url: jdbc:postgresql://127.0.0.1:5432/newdb
     url: jdbc:postgresql://127.0.0.1:5432/codebyzplatform
     username: postgres
     password: 122333
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     generate-ddl: true
     properties:
       hibernate:
@@ -23,8 +23,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 300MB
-      max-request-size: 300MB
+      max-file-size: 500MB
+      max-request-size: 500MB
 
   #  mail:
   #    host: smtp.gmail.com
