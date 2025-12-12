@@ -21,6 +21,29 @@ public class TelegramUpdateService {
         this.telegramProperties = telegramProperties;
         this.frontendProperties = frontendProperties;
     }
+/*
+    @SuppressWarnings("unchecked")
+    public void handleTeachers(Map<String, Object> update) {
+
+        if (!update.containsKey("message")) return;
+
+        Map<String, Object> message = (Map<String, Object>) update.get("message");
+        String text = (String) message.get("text");
+
+        if (text == null || !text.startsWith("/start")) return;
+
+        Map<String, Object> chat = (Map<String, Object>) message.get("chat");
+        Long chatId = Long.valueOf(chat.get("id").toString());
+
+        String responseText = """
+            👋 Assalomu alaykum, ustoz!
+            
+            CodeByZ Teacher bot ishga tushdi.
+            """;
+
+        sendMessage(chatId, responseText, telegramProperties.getTeachers().getToken());
+    }
+*/
 
     @SuppressWarnings("unchecked")
     public void handleUsers(Map<String, Object> update) {

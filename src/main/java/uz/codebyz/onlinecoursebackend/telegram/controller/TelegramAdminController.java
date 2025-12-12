@@ -32,7 +32,7 @@ public class TelegramAdminController {
         return ResponseDto.ok("Users webhook set");
     }
 
-    @PostMapping("/set-teachers-webhook")
+   /* @PostMapping("/set-teachers-webhook")
     public ResponseDto<String> setTeachersWebhook() {
         String url = "https://api.telegram.org/bot"
                 + props.getTeachers().getToken()
@@ -41,5 +41,5 @@ public class TelegramAdminController {
 
         restTemplate.getForObject(url, String.class);
         return ResponseDto.ok("Teachers webhook set");
-    }
+    }*/
 }
