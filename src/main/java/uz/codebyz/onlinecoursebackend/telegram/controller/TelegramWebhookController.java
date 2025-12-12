@@ -21,9 +21,9 @@ public class TelegramWebhookController {
     public void usersWebhook(@RequestBody Map<String, Object> update) {
         updateService.handleUsers(update);
     }
-
+/*
     @PostMapping("/teachers")
     public void teachersWebhook(@RequestBody Map<String, Object> update) {
         updateService.handleTeachers(update);
-    }
+    }*/
 }
