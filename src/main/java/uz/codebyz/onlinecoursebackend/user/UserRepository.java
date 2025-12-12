@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     boolean existsByUsername(String username);
-
+    Optional<User> findByChatId(Long chatId);
     @Query("select u from User u")
     Page<User> findAllUsers(Pageable pageable);
 }
