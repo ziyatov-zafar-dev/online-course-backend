@@ -1,6 +1,7 @@
 package uz.codebyz.onlinecoursebackend.teacher.rest;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -14,9 +15,7 @@ import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseUpdateRequestD
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.course.entity.CourseStatus;
 import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseCreateRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCoursePricingRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseResponseDto;
+import uz.codebyz.onlinecoursebackend.teacher.dto.course.*;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCourseAndPromoCodeResponseDto;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCreatePromoCodeRequestDto;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
@@ -75,7 +74,7 @@ public class TeacherCourseRestController {
             @PathVariable("courseId") UUID courseId
     ) {
         return ResponseEntity.ok(
-                courseService.findById(principal.getUser().getTeacher(), courseId)
+                courseService.findBySkillId(principal.getUser().getTeacher(), courseId)
         );
     }
 
@@ -443,4 +442,90 @@ public class TeacherCourseRestController {
                 courseService.findByPromoCodeId(promoCodeId)
         );
     }
+
+    @Operation(
+            summary = "Skill ni ID orqali olish",
+            description = "UUID orqali teacher course skill ma'lumotini qaytaradi"
+    )
+    @GetMapping("skill/{skillId}")
+    public ResponseDto<TeacherCourseSkillResponseDto> findById(
+            @Parameter(
+                    description = "Skill UUID",
+                    example = "c7a8f2d4-4d1b-4b4f-9c3e-2f6e1b7a9d01",
+                    required = true
+            )
+            @PathVariable("skillId") UUID skillId
+    ) {
+        return courseService.findBySkillId(skillId);
+    }
+
+    @Operation(
+            summary = "Course ID orqali skill'larni olish",
+            description = "Berilgan course UUID ga tegishli barcha course skill'lar ro'yxatini qaytaradi"
+    )
+    @GetMapping("/skills/{courseId}")
+    public ResponseDto<List<TeacherCourseSkillResponseDto>> findAllByCourseId(
+            @Parameter(
+                    description = "Course UUID",
+                    example = "b3a1e1c2-7f9a-4e4f-b5b2-9d9c3f9a1234",
+                    required = true
+            )
+            @PathVariable UUID courseId
+    ) {
+        return courseService.findAllByCourseId(courseId);
+    }
+
+    @Operation(
+            summary = "Course ga yangi skill qo‘shish",
+            description = "Teacher course uchun yangi skill yaratadi va course ga biriktiradi"
+    )
+    @PostMapping("skill/add")
+    public ResponseDto<TeacherCourseSkillResponseDto> addSkillToCourse(
+            @Parameter(
+                    description = "Yangi skill yaratish uchun DTO",
+                    required = true
+            )
+            @RequestBody CreateTeacherCourseSkillDto skill
+    ) {
+        return courseService.addSkillToCourse(skill);
+    }
+
+    @Operation(
+            summary = "Course skill'ni tahrirlash",
+            description = "Berilgan skill UUID bo‘yicha teacher course skill ma’lumotlarini yangilaydi"
+    )
+    @PutMapping("/{skillId}")
+    public ResponseDto<TeacherCourseSkillResponseDto> editCourseSkill(
+            @Parameter(
+                    description = "Tahrirlanayotgan skill UUID",
+                    example = "c7a8f2d4-4d1b-4b4f-9c3e-2f6e1b7a9d01",
+                    required = true
+            )
+            @PathVariable("skillId") UUID skillId,
+
+            @Parameter(
+                    description = "Yangilangan skill ma’lumotlari",
+                    required = true
+            )
+            @RequestBody UpdateTeacherCourseSkillDto skill
+    ) {
+        return courseService.editCourseSkill(skillId, skill);
+    }
+
+    @Operation(
+            summary = "Course skill'ni o‘chirish",
+            description = "Berilgan skill UUID bo‘yicha teacher course skill'ni o‘chiradi"
+    )
+    @DeleteMapping("/{skillId}")
+    public ResponseDto<Void> deleteCourseSkill(
+            @Parameter(
+                    description = "O‘chirilayotgan skill UUID",
+                    example = "c7a8f2d4-4d1b-4b4f-9c3e-2f6e1b7a9d01",
+                    required = true
+            )
+            @PathVariable("skillId") UUID skillId
+    ) {
+        return courseService.deleteCourseSkill(skillId);
+    }
+
 }

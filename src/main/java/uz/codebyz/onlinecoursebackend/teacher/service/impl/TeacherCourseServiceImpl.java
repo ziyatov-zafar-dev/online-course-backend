@@ -9,9 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
 import uz.codebyz.onlinecoursebackend.admin.category.mapper.AdminPromoCodeMapper;
 import uz.codebyz.onlinecoursebackend.admin.category.promoCodeDtos.AdminCourseAndPromoCodeResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseResponseDto;
+import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseSkillResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseUpdateRequestDto;
 import uz.codebyz.onlinecoursebackend.admin.course.dto.UploadFileResponseDto;
 import uz.codebyz.onlinecoursebackend.admin.course.mapper.AdminCourseMapper;
+import uz.codebyz.onlinecoursebackend.admin.course.mapper.AdminCourseSkillMapper;
 import uz.codebyz.onlinecoursebackend.category.entity.Category;
 import uz.codebyz.onlinecoursebackend.category.repository.CategoryRepository;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
@@ -22,14 +24,15 @@ import uz.codebyz.onlinecoursebackend.helper.CurrentTime;
 import uz.codebyz.onlinecoursebackend.helper.FileHelper;
 import uz.codebyz.onlinecoursebackend.promocode.entity.PromoCode;
 import uz.codebyz.onlinecoursebackend.promocode.repository.PromoCodeRepository;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseCreateRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCoursePricingRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseResponseDto;
+import uz.codebyz.onlinecoursebackend.skill.entity.Skill;
+import uz.codebyz.onlinecoursebackend.skill.repository.SkillRepository;
+import uz.codebyz.onlinecoursebackend.teacher.dto.course.*;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCode.TeacherPromoCodeMapper;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCourseAndPromoCodeResponseDto;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCreatePromoCodeRequestDto;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.mapper.TeacherCourseMapper;
+import uz.codebyz.onlinecoursebackend.teacher.mapper.TeacherCourseSkillMapper;
 import uz.codebyz.onlinecoursebackend.teacher.service.TeacherCourseService;
 import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
@@ -49,18 +52,24 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
     private final PromoCodeRepository promoCodeRepository;
     private final UserDeviceService userDeviceService;
     private final TeacherPromoCodeMapper teacherPromoCodeMapper;
+    private final SkillRepository skillRepository;
+    private final TeacherCourseSkillMapper teacherCourseSkillMapper;
+    @Value("${course.skill.icon}")
+    private String skillIconBaseUrl;
     @Value("${course.image.url}")
     private String baseCourseImagePath;
     @Value("${course.video.url}")
     private String baseCourseVideoPath;
 
-    public TeacherCourseServiceImpl(CourseRepository courseRepository, TeacherCourseMapper courseMapper, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, UserDeviceService userDeviceService, TeacherPromoCodeMapper teacherPromoCodeMapper) {
+    public TeacherCourseServiceImpl(CourseRepository courseRepository, TeacherCourseMapper courseMapper, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, UserDeviceService userDeviceService, TeacherPromoCodeMapper teacherPromoCodeMapper, SkillRepository skillRepository, TeacherCourseSkillMapper teacherCourseSkillMapper) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
         this.categoryRepository = categoryRepository;
         this.promoCodeRepository = promoCodeRepository;
         this.userDeviceService = userDeviceService;
         this.teacherPromoCodeMapper = teacherPromoCodeMapper;
+        this.skillRepository = skillRepository;
+        this.teacherCourseSkillMapper = teacherCourseSkillMapper;
     }
 
     @Override
@@ -79,7 +88,7 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
     }
 
     @Override
-    public ResponseDto<TeacherCourseResponseDto> findById(Teacher teacher, UUID id) {
+    public ResponseDto<TeacherCourseResponseDto> findBySkillId(Teacher teacher, UUID id) {
         Optional<Course> cOp = courseRepository.findTeacherByCourseId(id);
         if (cOp.isEmpty())
             return new ResponseDto<>(false, "Not found course");
@@ -549,5 +558,90 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
         promoCode.setPromoCodeUsages(new ArrayList<>());
         return new ResponseDto<>(true, "Success", teacherPromoCodeMapper.toDto(
                 promoCodeRepository.save(promoCode), userDeviceService));
+    }
+
+    @Override
+    public ResponseDto<TeacherCourseSkillResponseDto> findBySkillId(UUID skillId) {
+        Optional<Skill> sOp = skillRepository.findById(skillId);
+        if (sOp.isEmpty()) return new ResponseDto<>(false, "Skill not found");
+        Skill skill = sOp.get();
+        TeacherCourseSkillResponseDto dto = teacherCourseSkillMapper.toDto(skill);
+        return new ResponseDto<>(true, "Success", dto);
+    }
+
+    @Override
+    public ResponseDto<List<TeacherCourseSkillResponseDto>> findAllByCourseId(UUID courseId) {
+        if (courseRepository.findById(courseId).isEmpty()) return new ResponseDto<>(false, "Course not found");
+        return new ResponseDto<>(true, "Success",
+                teacherCourseSkillMapper.toDto(skillRepository.getAllSkillsByCourse(courseId)));
+    }
+
+    @Override
+    public ResponseDto<TeacherCourseSkillResponseDto> addSkillToCourse(CreateTeacherCourseSkillDto dto) {
+        Optional<Course> cOp = courseRepository.findAdminByCourseId(dto.getCourseId());
+        if (cOp.isEmpty()) return new ResponseDto<>(false, "Course not found");
+        if (dto.getSkillIcon() == null)
+            return new ResponseDto<>(false, "Skill ikonkasi topilmadi");
+        MultipartFile image = dto.getSkillIcon();
+        String contentType = image.getContentType();
+
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Faqat rasm yuklash mumkin! (jpeg, png, webp...)");
+        }
+        ResponseDto<UploadFileResponseDto> savedFile = FileHelper.uploadFile(dto.getSkillIcon(), skillIconBaseUrl, false);
+        if (!savedFile.isSuccess()) return new ResponseDto<>(false, savedFile.getMessage());
+        Skill skill = new Skill();
+        skill.setCourse(cOp.get());
+        skill.setName(dto.getName());
+        skill.setIconUrl(savedFile.getData().getFileUrl());
+        skill.setActive(true);
+        skill.setCreated(CurrentTime.currentTime());
+        skill.setUpdated(CurrentTime.currentTime());
+        skill.setOrderNumber(dto.getOrderNumber());
+        skill = skillRepository.save(skill);
+        return new ResponseDto<>(true, "Success", teacherCourseSkillMapper.toDto(skill));
+    }
+
+    @Override
+    public ResponseDto<TeacherCourseSkillResponseDto> editCourseSkill(UUID skillId,
+                                                                      UpdateTeacherCourseSkillDto dto) {
+        Optional<Skill> sOp = skillRepository.findById(skillId);
+        if (sOp.isEmpty()) return new ResponseDto<>(false, "Skill not found");
+
+        if (dto.getSkillIcon() == null)
+            return new ResponseDto<>(false, "Skill ikonkasi topilmadi");
+
+        MultipartFile image = dto.getSkillIcon();
+
+        String contentType = image.getContentType();
+
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Faqat rasm yuklash mumkin! (jpeg, png, webp...)");
+        }
+
+        ResponseDto<UploadFileResponseDto> savedFile =
+                FileHelper.uploadFile(dto.getSkillIcon(),
+                        skillIconBaseUrl, false);
+        if (!savedFile.isSuccess()) return new ResponseDto<>(false, savedFile.getMessage());
+        Skill skill = sOp.get();
+        skill.setName(dto.getName());
+        FileHelper.deleteFile(skill.getIconUrl());
+        skill.setIconUrl(savedFile.getData().getFileUrl());
+        skill.setUpdated(CurrentTime.currentTime());
+        skill.setOrderNumber(dto.getOrderNumber());
+        skill = skillRepository.save(skill);
+        return new ResponseDto<>(true, "Success", teacherCourseSkillMapper.toDto(skill));
+    }
+
+    @Override
+    public ResponseDto<Void> deleteCourseSkill(UUID skillId) {
+        Optional<Skill> sOp = skillRepository.findById(skillId);
+        if (sOp.isEmpty()) return new ResponseDto<>(false, "Skill not found");
+        Skill skill = sOp.get();
+        skill.setActive(false);
+        FileHelper.deleteFile(skill.getIconUrl());
+        skill.setUpdated(CurrentTime.currentTime());
+        skill = skillRepository.save(skill);
+        return new ResponseDto<>(true, "Muvaffaqiyatli o'chirildi");
     }
 }

@@ -2,17 +2,10 @@ package uz.codebyz.onlinecoursebackend.teacher.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
-import uz.codebyz.onlinecoursebackend.admin.category.promoCodeDtos.AdminCourseAndPromoCodeResponseDto;
-import uz.codebyz.onlinecoursebackend.admin.category.promoCodeDtos.AdminCreatePromoCodeRequestDto;
-import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseCreateRequestDto;
-import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCoursePricingRequestDto;
-import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseResponseDto;
-import uz.codebyz.onlinecoursebackend.admin.course.dto.AdminCourseUpdateRequestDto;
+import uz.codebyz.onlinecoursebackend.admin.course.dto.*;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.course.entity.CourseStatus;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseCreateRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCoursePricingRequestDto;
-import uz.codebyz.onlinecoursebackend.teacher.dto.course.TeacherCourseResponseDto;
+import uz.codebyz.onlinecoursebackend.teacher.dto.course.*;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCourseAndPromoCodeResponseDto;
 import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCreatePromoCodeRequestDto;
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
@@ -26,7 +19,7 @@ public interface TeacherCourseService {
 
     ResponseDto<Page<TeacherCourseResponseDto>> myCourses(Teacher teacher, int page, int size);
 
-    ResponseDto<TeacherCourseResponseDto> findById(Teacher teacher ,UUID id);
+    ResponseDto<TeacherCourseResponseDto> findBySkillId(Teacher teacher , UUID id);
 
     ResponseDto<TeacherCourseResponseDto> findBySlug(String slug);
 
@@ -82,4 +75,12 @@ public interface TeacherCourseService {
 
     ResponseDto<TeacherCourseAndPromoCodeResponseDto> findByPromoCodeId(UUID promoCodeId);
 
+
+
+
+    ResponseDto<TeacherCourseSkillResponseDto> findBySkillId(UUID skillId);
+    ResponseDto<List<TeacherCourseSkillResponseDto>> findAllByCourseId(UUID courseId);
+    ResponseDto<TeacherCourseSkillResponseDto> addSkillToCourse(CreateTeacherCourseSkillDto skill);
+    ResponseDto<TeacherCourseSkillResponseDto> editCourseSkill(UUID skillId,UpdateTeacherCourseSkillDto skill);
+    ResponseDto<Void> deleteCourseSkill(UUID skillId);
 }

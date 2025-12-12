@@ -77,7 +77,8 @@ public class AdminCourseSkillServiceImpl implements AdminCourseSkillService {
     }
 
     @Override
-    public ResponseDto<AdminCourseSkillResponseDto> editCourseSkill(UUID skillId, UpdateAdminCourseSkillDto dto) {
+    public ResponseDto<AdminCourseSkillResponseDto> editCourseSkill(UUID skillId,
+                                                                    UpdateAdminCourseSkillDto dto) {
         Optional<Skill> sOp = skillRepository.findById(skillId);
         if (sOp.isEmpty()) return new ResponseDto<>(false, "Skill not found");
 
