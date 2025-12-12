@@ -109,6 +109,12 @@ telegram:
   bot:
     token: 7714880768:AAGwc6dHpqMwyJ7pBqP_mungB5-27YC5i2Q
     username: https://t.me/CodeByZ_Notification_Bot
+admins:
+  chat:
+    ids:
+      - 1660155052
+      - 7882316826
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

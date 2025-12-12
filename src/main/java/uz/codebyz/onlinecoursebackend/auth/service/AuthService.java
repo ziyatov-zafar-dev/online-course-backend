@@ -20,6 +20,7 @@ import uz.codebyz.onlinecoursebackend.revokedToken.repository.RevokedTokenReposi
 import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtAuthenticationFilter;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
+import uz.codebyz.onlinecoursebackend.telegrambot.service.TelegramNotificationService;
 import uz.codebyz.onlinecoursebackend.user.*;
 import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
 import uz.codebyz.onlinecoursebackend.userDevice.repository.MaxDeviceRepository;
@@ -55,7 +56,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        VerificationService verificationService,
                        EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository) {
+                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository, TelegramNotificationService telegramNotificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
@@ -101,7 +102,6 @@ public class AuthService {
 
         VerificationCode verificationCode = verificationService.createVerification(user, VerificationType.SIGN_UP, null);
         emailService.sendEmail(user.getEmail(), "Tasdiqlash kodi", "Ro‘yxatdan o‘tishni tasdiqlang.", verificationCode.getCode());
-
         return ApiResponse.ok("Tasdiqlash kodi emailingizga yuborildi.");
     }
 
@@ -243,6 +243,7 @@ public class AuthService {
         VerificationCode code = verificationService.createVerification(
                 user, VerificationType.SIGN_IN, null
         );
+
 
         emailService.sendEmail(
                 user.getEmail(),

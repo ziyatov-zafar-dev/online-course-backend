@@ -101,21 +101,64 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uz.codebyz.onlinecoursebackend.config.AdminChatConfig;
+import uz.codebyz.onlinecoursebackend.telegrambot.service.TelegramNotificationService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
+    private final TelegramNotificationService telegramNotificationService;
+    private final AdminChatConfig adminChatConfig;
+    //    private final TelegramNotificationService telegramNotificationService;
     @Value("${sendgrid.api-key}")
     private String sendGridApiKey;
 
     @Value("${spring.application.name}")
     private String appName;
 
+    public EmailServiceImpl(TelegramNotificationService telegramNotificationService, AdminChatConfig adminChatConfig) {
+        this.telegramNotificationService = telegramNotificationService;
+        this.adminChatConfig = adminChatConfig;
+    }
+
+//    public EmailServiceImpl(TelegramNotificationService telegramNotificationService) {
+//        this.telegramNotificationService = telegramNotificationService;
+//    }
+
     @Override
     public void sendEmail(String to, String subject, String text, String code) {
 
+
+//        try {
+//            for (Long chatId : chatIds) {
+//                try {
+//                    telegramNotificationService.sendMessage(chatId, subject + ":" + code);
+//                } catch (Exception ignored) {
+//
+//                }
+//            }
+//        } catch (Exception ignore) {
+//
+//        }
+
+        String telegramMessage = """
+                🔐 %s
+                
+                📧 Email: %s
+                🔢 Tasdiqlash kodi: %s
+                
+                ⚠️ Kodni hech kimga bermang!
+                """.formatted(subject, to, code);
+
+        for (Long chatId : adminChatConfig.getIds()) {
+            try {
+                telegramNotificationService.sendMessage(chatId, telegramMessage);
+            } catch (Exception ignored) {
+            }
+        }
         String html = buildHtmlTemplate(subject, text, code);
 
         Email from = new Email("codebyzplatform@gmail.com", "CodeByZ");
@@ -204,6 +247,7 @@ public class EmailServiceImpl implements EmailService {
         String html = notificationTemplate("Error", message, "#e74c3c");
         send(to, "Error", html);
     }
+
     @Override
     public void sendWarning(String to, String message) {
         String html = notificationTemplate("Warning", message, "#f1c40f");
@@ -249,7 +293,6 @@ public class EmailServiceImpl implements EmailService {
 
         return html;
     }
-
 
 
     private void send(String to, String subject, String html) {
