@@ -102,7 +102,7 @@ import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.config.AdminChatConfig;
-import uz.codebyz.onlinecoursebackend.telegram.service.TelegramNotificationService;
+import uz.codebyz.onlinecoursebackend.telegram.TelegramNotificationService;
 
 import java.io.IOException;
 

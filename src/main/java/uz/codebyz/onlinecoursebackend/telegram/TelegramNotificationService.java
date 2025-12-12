@@ -1,4 +1,4 @@
-package uz.codebyz.onlinecoursebackend.telegram.service;
+package uz.codebyz.onlinecoursebackend.telegram;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
