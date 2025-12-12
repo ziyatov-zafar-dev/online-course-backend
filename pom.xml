@@ -93,7 +93,7 @@
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
-            <artifactId>telegrambots-spring-boot-starter</artifactId>
+            <artifactId>telegrambots-meta</artifactId>
             <version>6.9.7.1</version>
         </dependency>
         <!-- JAXB API -->
