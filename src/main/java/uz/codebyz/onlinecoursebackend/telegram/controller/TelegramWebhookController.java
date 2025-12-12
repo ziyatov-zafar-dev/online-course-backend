@@ -1,6 +1,6 @@
 package uz.codebyz.onlinecoursebackend.telegram.controller;
 
-import io.swagger.v3.oas.annotations.Hidden;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.codebyz.onlinecoursebackend.telegram.service.TelegramUpdateService;
 
@@ -8,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/telegram")
-@Hidden
 public class TelegramWebhookController {
 
     private final TelegramUpdateService updateService;
@@ -17,13 +16,17 @@ public class TelegramWebhookController {
         this.updateService = updateService;
     }
 
+    // USERS BOT WEBHOOK
     @PostMapping("/users")
-    public void usersWebhook(@RequestBody Map<String, Object> update) {
+    public ResponseEntity<Void> usersWebhook(@RequestBody Map<String, Object> update) {
         updateService.handleUsers(update);
+        return ResponseEntity.ok().build();
     }
-/*
-    @PostMapping("/teachers")
-    public void teachersWebhook(@RequestBody Map<String, Object> update) {
+
+    // TEACHERS BOT WEBHOOK
+   /* @PostMapping("/teachers")
+    public ResponseEntity<Void> teachersWebhook(@RequestBody Map<String, Object> update) {
         updateService.handleTeachers(update);
+        return ResponseEntity.ok().build();
     }*/
 }
