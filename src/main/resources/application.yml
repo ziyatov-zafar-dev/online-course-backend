@@ -25,7 +25,7 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
-
+#https://online-course-tg-bot-for-users-up37-5p5csufu1.vercel.app/auth/telegram?chatId=123456789
   #  mail:
   #    host: smtp.gmail.com
   #    port: 587
@@ -106,6 +106,17 @@ google:
     api-key: ${GEMINI_API_KEY}
     model: ${GEMINI_MODEL}
 telegram:
+  base-url: https://codebyz.online
+  users:
+    bot:
+      token: 8548536952:AAGt23Cm16-rD0ueJoR7kQVerRm0Wfwbxec
+      username: https://t.me/CodeByz_Patform_Bot
+      webhook-path: /telegram/users/webhook
+  teachers:
+    bot:
+      token: 8072174037:AAFtxX3zla14leblkeSzSONtx96f25Vu8Ec
+      username: https://t.me/CodeByZ_Teachers_Bot
+      webhook-path: /telegram/teachers/webhook
   bot:
     token: 7714880768:AAGwc6dHpqMwyJ7pBqP_mungB5-27YC5i2Q
     username: https://t.me/CodeByZ_Notification_Bot
@@ -171,3 +182,5 @@ admin:
   email: ziyatovzafar98@gmail.com
   password: Zafar123$
   username: admin
+auth-frontend:
+  login-url: https://online-course-tg-bot-for-users-up37-5p5csufu1.vercel.app

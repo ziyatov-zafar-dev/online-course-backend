@@ -21,7 +21,7 @@ import uz.codebyz.onlinecoursebackend.revokedToken.repository.RevokedTokenReposi
 import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtAuthenticationFilter;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
-import uz.codebyz.onlinecoursebackend.telegrambot.service.TelegramNotificationService;
+import uz.codebyz.onlinecoursebackend.telegram.service.TelegramNotificationService;
 import uz.codebyz.onlinecoursebackend.user.*;
 import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
 import uz.codebyz.onlinecoursebackend.userDevice.repository.MaxDeviceRepository;

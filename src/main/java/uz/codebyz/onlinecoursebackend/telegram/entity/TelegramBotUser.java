@@ -38,7 +38,6 @@ public class TelegramBotUser {
 
     @Column(nullable = false)
     private boolean blocked = false;
-
     // ===== getters/setters =====
 
 

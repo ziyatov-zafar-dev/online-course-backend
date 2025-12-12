@@ -102,10 +102,9 @@ import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.config.AdminChatConfig;
-import uz.codebyz.onlinecoursebackend.telegrambot.service.TelegramNotificationService;
+import uz.codebyz.onlinecoursebackend.telegram.service.TelegramNotificationService;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 public class EmailServiceImpl implements EmailService {
