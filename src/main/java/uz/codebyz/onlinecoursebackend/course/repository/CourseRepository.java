@@ -111,7 +111,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
 
     /////////////Telegram bot uchun
-    @Query("select c from Course c where (c.active=true and c.deleted=true and c.status=uz.codebyz.onlinecoursebackend.course.entity.CourseStatus.OPEN) order by c.orderNumber asc")
-    List<Course> getAllCoursesBot();
+    @Query("select c from Course c order by c.orderNumber asc")
+    List<Course> getAllCoursesBot();/*@Query("select c from Course c where (c.active=true and c.deleted=true and c.status=uz.codebyz.onlinecoursebackend.course.entity.CourseStatus.OPEN) order by c.orderNumber asc")
+    List<Course> getAllCoursesBot();*/
 
 }
