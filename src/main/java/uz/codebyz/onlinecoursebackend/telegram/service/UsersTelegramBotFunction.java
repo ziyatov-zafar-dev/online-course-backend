@@ -24,6 +24,8 @@ public class UsersTelegramBotFunction {
     private final UserMsg msg;
     @Value("${auth-frontend.login-url}")
     private String frontendBaseUrl;
+    @Value("${courses.list.size}")
+    private int size;
     private final TelegramBot bot;
     private final BotUserService userService;
 
@@ -154,11 +156,16 @@ public class UsersTelegramBotFunction {
                             ⏳ Tez orada yangi kurslar qo‘shiladi!""");
             return;
         }
+        int page = 0;
+
+        if (data != null && data.startsWith("course_page_")) {
+            page = Integer.parseInt(data.replace("course_page_", ""));
+        }
+        int startIndex = page * size;
         bot.editMessageText(
                 user.getChatId(),
-                messageId, msg.aboutAllCourses(),
+                messageId, msg.aboutAllCourses(kyb.paginate(courses, page),startIndex),
                 kyb.getAllCourses(courses, data)
         );
-
     }
 }
