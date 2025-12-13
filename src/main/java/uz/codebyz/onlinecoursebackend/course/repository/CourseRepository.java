@@ -116,5 +116,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     @Query("select c from Course c where (c.active=true and c.deleted=false and " +
             "c.status=uz.codebyz.onlinecoursebackend.course.entity.CourseStatus.OPEN) order by c.orderNumber asc")
     List<Course> getAllCoursesBot();
-
+    @Query("select c from Course c where (c.deleted=false and c.active=true and c.status=uz.codebyz.onlinecoursebackend.course.entity.CourseStatus.OPEN and c.id=:cid)")
+    Optional<Course> findBotByCourseId(@Param("cid") UUID courseId);
 }

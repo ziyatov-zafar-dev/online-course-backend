@@ -1,5 +1,6 @@
 package uz.codebyz.onlinecoursebackend.telegram.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
@@ -11,10 +12,12 @@ import uz.codebyz.onlinecoursebackend.telegram.bot.msg.UserMsg;
 import uz.codebyz.onlinecoursebackend.telegram.entity.BotUserStatus;
 import uz.codebyz.onlinecoursebackend.telegram.entity.EventCode;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
+import uz.codebyz.onlinecoursebackend.telegram.util.Util;
 import uz.codebyz.onlinecoursebackend.user.UserRole;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -121,7 +124,7 @@ public class UsersTelegramBotFunction {
         }
     }
 
-    public void menu(TelegramUser user, String data, Map<String, Object> callback, Integer messageId) {
+    public void menu(TelegramUser user, String data, Map<String, Object> callback, Integer messageId, HttpServletRequest request) {
         switch (data) {
 
             case "all_courses" -> {
@@ -136,7 +139,19 @@ public class UsersTelegramBotFunction {
             default -> {
                 if (data.startsWith("course_id_")) {
                     UUID courseId = UUID.fromString(data.substring("course_id_".length()));
-                    bot.alertMessage(callback, courseId.toString());
+//                    bot.alertMessage(callback, courseId.toString());
+                    Optional<Course> cOp = courseRepository.findBotByCourseId(courseId);
+                    if (cOp.isEmpty()) {
+                        bot.alertMessage(callback,
+                                "⏳ Ushbu kurs tez orada ochiladi.\nIltimos, biroz kuting 🙂");
+
+                        return;
+                    }
+                    Course course = cOp.get();
+                    bot.deleteMessage(user.getChatId(), messageId);
+
+                    String baseUrl = Util.getBaseUrl(request);
+                    bot.sendPhoto(user.getChatId(), baseUrl  + "/"+course.getImgUrl(),msg.aboutCourse(course) , kyb.aboutCourseNotMe(course));
                 } else if (data.startsWith("course_page_")) {
                     getAllCoursesWIthPagination(user, data, callback, messageId);
                 } else bot.alertMessage(callback, "❌ Noma’lum buyruq");
@@ -164,7 +179,7 @@ public class UsersTelegramBotFunction {
         int startIndex = page * size;
         bot.editMessageText(
                 user.getChatId(),
-                messageId, msg.aboutAllCourses(kyb.paginate(courses, page),startIndex),
+                messageId, msg.aboutAllCourses(kyb.paginate(courses, page), startIndex),
                 kyb.getAllCourses(courses, data)
         );
     }

@@ -119,4 +119,57 @@ public class UserKyb {
 
         return rows;
     }
+
+    public List<List<ButtonDto>> aboutCourseNotMe(Course course) {
+
+        List<List<ButtonDto>> rows = new ArrayList<>();
+
+        /* ================== BUY BUTTON ================== */
+        rows.add(List.of(
+                new ButtonDto(
+                        "💳 Sotib olish",
+                        ButtonType.INLINE,
+                        "buy_course_" + course.getId()
+                )
+        ));
+
+        /* ================== TELEGRAM LINKS ================== */
+        List<ButtonDto> linkRow = new ArrayList<>();
+
+        if (Boolean.TRUE.equals(course.getHasTelegramChannel())
+                && course.getTelegramChannelLink() != null) {
+
+            linkRow.add(new ButtonDto(
+                    "📢 Kanal",
+                    ButtonType.URL,
+                    course.getTelegramChannelLink()
+            ));
+        }
+
+        if (Boolean.TRUE.equals(course.getHasTelegramGroup())
+                && course.getTelegramGroupLink() != null) {
+
+            linkRow.add(new ButtonDto(
+                    "👥 Guruh",
+                    ButtonType.URL,
+                    course.getTelegramGroupLink()
+            ));
+        }
+
+        if (!linkRow.isEmpty()) {
+            rows.add(linkRow);
+        }
+
+        /* ================== BACK ================== */
+        rows.add(List.of(
+                new ButtonDto(
+                        "⬅️ Orqaga",
+                        ButtonType.INLINE,
+                        "courses_back"
+                )
+        ));
+
+        return rows;
+    }
+
 }

@@ -188,4 +188,4 @@ auth-frontend:
 
 courses:
   list:
-    size: 1
+    size: 10

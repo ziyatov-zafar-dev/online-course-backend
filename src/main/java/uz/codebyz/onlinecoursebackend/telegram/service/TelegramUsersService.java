@@ -1,5 +1,6 @@
 package uz.codebyz.onlinecoursebackend.telegram.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.telegram.bot.TelegramBot;
@@ -24,7 +25,7 @@ public class TelegramUsersService {
     }
 
     @SuppressWarnings("unchecked")
-    public void handleUpdate(Map<String, Object> update) {
+    public void handleUpdate(Map<String, Object> update, HttpServletRequest request) {
         TelegramUpdateData updateData = TelegramUpdateExtractor.extract(update);
         /* ================= CALLBACK QUERY ================= */
         if (updateData.getType() == TelegramUpdateData.MessageType.CALLBACK) {
@@ -42,7 +43,7 @@ public class TelegramUsersService {
                 TelegramUser user = checkUser.getData();
                 EventCode eventCode = user.getEventCode();
                 if (eventCode == EventCode.MENU) {
-                    functions.menu(user, data, callback,updateData.getMessageId());
+                    functions.menu(user, data, callback,updateData.getMessageId(),request);
                 }
             }
         }
