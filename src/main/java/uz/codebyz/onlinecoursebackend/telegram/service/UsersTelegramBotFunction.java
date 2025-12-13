@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.course.entity.Course;
+import uz.codebyz.onlinecoursebackend.course.repository.CourseRepository;
 import uz.codebyz.onlinecoursebackend.telegram.bot.TelegramBot;
-import uz.codebyz.onlinecoursebackend.telegram.bot.kyb.Kyb;
-import uz.codebyz.onlinecoursebackend.telegram.dto.ButtonDto;
-import uz.codebyz.onlinecoursebackend.telegram.dto.ButtonType;
+import uz.codebyz.onlinecoursebackend.telegram.bot.kyb.UserKyb;
+import uz.codebyz.onlinecoursebackend.telegram.bot.msg.UserMsg;
 import uz.codebyz.onlinecoursebackend.telegram.entity.BotUserStatus;
 import uz.codebyz.onlinecoursebackend.telegram.entity.EventCode;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
@@ -18,16 +18,20 @@ import java.util.Map;
 
 @Service
 public class UsersTelegramBotFunction {
-    private final Kyb kyb;
+    private final UserKyb kyb;
+    private final CourseRepository courseRepository;
+    private final UserMsg msg;
     @Value("${auth-frontend.login-url}")
     private String frontendBaseUrl;
     private final TelegramBot bot;
     private final BotUserService userService;
 
-    public UsersTelegramBotFunction(TelegramBot bot, BotUserService userService, Kyb kyb) {
+    public UsersTelegramBotFunction(TelegramBot bot, BotUserService userService, UserKyb kyb, CourseRepository courseRepository, UserMsg userMsg) {
         this.bot = bot;
         this.userService = userService;
         this.kyb = kyb;
+        this.courseRepository = courseRepository;
+        this.msg = userMsg;
     }
 
     /* ================= START ================= */
@@ -66,17 +70,20 @@ public class UsersTelegramBotFunction {
                 user.setEventCode(EventCode.MENU);
                 user = userService.save(user);
                 return;
-            } else bot.sendMessage(
-                    chatId,
-                    """
-                            ❌ <b>Kirish rad etildi</b>
-                            
-                            ⚠️ Ushbu bot <b>faqat talabalarga</b> mo‘ljallangan.
-                            
-                            Agar siz <b>o‘qituvchi</b> yoki <b>administrator</b> bo‘lsangiz,
-                            iltimos, o‘zingizga mos botdan foydalaning.""",
-                    true
-            );
+            } else {
+                bot.sendMessage(
+                        chatId,
+                        """
+                                ❌ <b>Kirish rad etildi</b>
+                                
+                                ⚠️ Ushbu bot <b>faqat talabalarga</b> mo‘ljallangan.
+                                
+                                Agar siz <b>o‘qituvchi</b> yoki <b>administrator</b> bo‘lsangiz,
+                                iltimos, o‘zingizga mos botdan foydalaning.""",
+                        true
+                );
+                return;
+            }
         }
         try {
             String loginUrl =
@@ -116,15 +123,25 @@ public class UsersTelegramBotFunction {
         switch (data) {
 
             case "all_courses" -> {
-/*
+                List<Course> courses = courseRepository.getAllCoursesBot();
+                if (courses.isEmpty()) {
+                    bot.alertMessage(callback,
+                            """
+                                    🚀 CodeByZ Academy
+                                    
+                                    📚 Kurslar hozircha mavjud emas.
+                                    ⏳ Tez orada yangi kurslar qo‘shiladi!""");
+                    return;
+                }
                 bot.editMessageText(
-                        user.getChatId(), messageId, "", kyb.courseBtn()
+                        user.getChatId(),
+                        messageId, msg.aboutAllCourses(),
+                        kyb.getAllCourses(courses, null)
                 );
-*/
+
             }
 
             case "my_certificates", "all_payment" -> bot.alertMessage(callback, "⚠️ Bu funksiya hozircha mavjud emas");
-
             default -> bot.alertMessage(callback, "❌ Noma’lum buyruq");
         }
 
