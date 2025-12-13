@@ -306,7 +306,11 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         Course course = AdminCourseMapper.toEntityFromCreateRequest(request);
         course.setCategory(category);
         course.setTeacher(teacher);
-
+        if (request.getDiscountStartAt() == null || request.getDiscountEndAt() == null) {
+            return new ResponseDto<>(false, "Chegirma boshlanish vaqti va tugash vaqtini kiritishingiz kerak");
+        }
+        course.setDiscountStartAt(request.getDiscountStartAt());
+        course.setDiscountEndAt(request.getDiscountEndAt());
         course.setPrice(price);
         course.setFinalPrice(finalPrice);
         course.setDiscountPrice(discountPrice);
@@ -324,7 +328,6 @@ public class AdminCourseServiceImpl implements AdminCourseService {
                 AdminCourseMapper.toDto(saved)
         );
     }
-
 
 
     private boolean checkSlug(String slug) {

@@ -135,6 +135,11 @@ public class UsersTelegramBotFunction {
 
                 bot.editMessageText(user.getChatId(), messageId, "\uD83D\uDCCC Siz asosiy menyuga qaytdingiz. Quyidagilardan birini tanlang", kyb.menu());
             }
+            case "courses_back" -> {
+                bot.deleteMessage(user.getChatId(), messageId);
+                bot.sendMessage(user.getChatId(), "s");
+                getAllCoursesWIthPagination(user, null, callback, messageId + 1);
+            }
             case "my_certificates", "all_payment" -> bot.alertMessage(callback, "⚠️ Bu funksiya hozircha mavjud emas");
             default -> {
                 if (data.startsWith("course_id_")) {
@@ -151,7 +156,7 @@ public class UsersTelegramBotFunction {
                     bot.deleteMessage(user.getChatId(), messageId);
 
                     String baseUrl = Util.getBaseUrl(request);
-                    bot.sendPhoto(user.getChatId(), baseUrl  + "/"+course.getImgUrl(),msg.aboutCourse(course) , kyb.aboutCourseNotMe(course));
+                    bot.sendPhoto(user.getChatId(), baseUrl + "/" + course.getImgUrl(), msg.aboutCourse(course), kyb.aboutCourseNotMe(course));
                 } else if (data.startsWith("course_page_")) {
                     getAllCoursesWIthPagination(user, data, callback, messageId);
                 } else bot.alertMessage(callback, "❌ Noma’lum buyruq");

@@ -94,7 +94,6 @@ public class UserMsg {
                     .append(HtmlUtils.htmlEscape(course.getDescription()))
                     .append("\n\n");
         }
-
         BigDecimal price = course.getPrice();
         BigDecimal finalPrice = course.getFinalPrice();
 
@@ -155,7 +154,6 @@ public class UserMsg {
 
         return sb.toString();
     }
-
 
 
     private String formatMoney(BigDecimal amount) {
