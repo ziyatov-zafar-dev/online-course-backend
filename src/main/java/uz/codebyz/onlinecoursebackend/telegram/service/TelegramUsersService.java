@@ -43,7 +43,7 @@ public class TelegramUsersService {
                 TelegramUser user = checkUser.getData();
                 EventCode eventCode = user.getEventCode();
                 if (eventCode == EventCode.MENU) {
-                    functions.menu(user, data, callback,updateData.getMessageId(),request);
+                    functions.menu(user, data, callback, updateData.getMessageId(), request);
                 }
             }
         }

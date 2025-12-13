@@ -45,11 +45,9 @@ public class UsersTelegramBotFunction {
     public void start(Long chatId, String firstName, String lastName, String username) {
         ResponseDto<Void> checkUser = userService.checkUser(chatId);
         if (checkUser.isSuccess()) {
-
             ResponseDto<TelegramUser> checkTelegramUser = userService.checkTelegramUser(chatId);
             TelegramUser user;
             if (checkTelegramUser.isSuccess()) {
-
                 if (checkTelegramUser.getData().getStatus() == BotUserStatus.BLOCK) {
                     bot.sendMessage(chatId, checkTelegramUser.getMessage(), true);
                     return;
@@ -127,9 +125,7 @@ public class UsersTelegramBotFunction {
     public void menu(TelegramUser user, String data, Map<String, Object> callback, Integer messageId, HttpServletRequest request) {
         switch (data) {
 
-            case "all_courses" -> {
-                getAllCoursesWIthPagination(user, null, callback, messageId);
-            }
+            case "all_courses" -> getAllCoursesWIthPagination(user, null, callback, messageId);
             case "back_menu" -> {
                 //bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
 

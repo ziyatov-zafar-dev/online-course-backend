@@ -143,12 +143,7 @@ public class UserMsg {
             sb.append("💰 Narx: <b>Bepul</b>\n\n");
         }
 
-        /* ================= INFO ================= */
-        if (course.getModules() != null && !course.getModules().isEmpty()) {
-            sb.append("📦 Modullar soni: ")
-                    .append(course.getModules().size())
-                    .append("\n");
-        }
+
 
         sb.append("\n👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
 
@@ -161,6 +156,4 @@ public class UserMsg {
                 .getInstance(new Locale("uz", "UZ"))
                 .format(amount) + " so‘m";
     }
-
-
 }
