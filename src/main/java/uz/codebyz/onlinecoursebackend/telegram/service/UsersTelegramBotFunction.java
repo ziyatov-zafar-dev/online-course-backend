@@ -43,7 +43,7 @@ public class UsersTelegramBotFunction {
             ResponseDto<TelegramUser> checkTelegramUser = userService.checkTelegramUser(chatId);
             TelegramUser user;
             if (checkTelegramUser.isSuccess()) {
-                System.err.println("Telegram User mavjud");
+
                 if (checkTelegramUser.getData().getStatus() == BotUserStatus.BLOCK) {
                     bot.sendMessage(chatId, checkTelegramUser.getMessage(), true);
                     return;
@@ -53,7 +53,7 @@ public class UsersTelegramBotFunction {
                     user = userService.save(user);
                 }
             } else {
-                System.err.println("User mavjud emas");
+
                 if (!lastName.isEmpty()) {
                     firstName = firstName.concat(" " + lastName);
                 }
@@ -63,7 +63,6 @@ public class UsersTelegramBotFunction {
                     return;
                 }
                 user = savedUser.getData();
-
             }
             if (userService.getRole(user.getChatId()) == UserRole.STUDENT) {
                 bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
@@ -138,9 +137,12 @@ public class UsersTelegramBotFunction {
                         messageId, msg.aboutAllCourses(),
                         kyb.getAllCourses(courses, null)
                 );
-
             }
+            case "back_menu" -> {
+                //bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
 
+                bot.editMessageText(user.getChatId(), messageId, "Asosiy menyudasiz", kyb.menu());
+            }
             case "my_certificates", "all_payment" -> bot.alertMessage(callback, "⚠️ Bu funksiya hozircha mavjud emas");
             default -> bot.alertMessage(callback, "❌ Noma’lum buyruq");
         }

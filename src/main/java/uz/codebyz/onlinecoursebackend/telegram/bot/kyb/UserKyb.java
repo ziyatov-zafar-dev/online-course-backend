@@ -31,48 +31,54 @@ public class UserKyb {
         );
     }
 
-    public List<Course> paginate(List<Course> courses, int page, int size) {
+    public List<Course> paginate(List<Course> courses, int page) {
 
         if (courses == null || courses.isEmpty()) {
             return List.of();
         }
 
+        if (page < 0) {
+            page = 0;
+        }
+
         int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, courses.size());
 
         if (fromIndex >= courses.size()) {
             return List.of();
         }
-
+        int toIndex = Math.min(fromIndex + size, courses.size());
         return courses.subList(fromIndex, toIndex);
     }
 
+
     public List<List<ButtonDto>> getAllCourses(List<Course> allCourses, String data) {
 
-        int size = 5;
         int page = 0;
 
         if (data != null && data.startsWith("course_page_")) {
             page = Integer.parseInt(data.replace("course_page_", ""));
         }
 
-        List<Course> courses = paginate(allCourses, page, size);
+        List<Course> courses = paginate(allCourses, page);
 
         List<List<ButtonDto>> rows = new ArrayList<>();
         List<ButtonDto> row = new ArrayList<>();
 
         int startIndex = page * size;
+        int perRow = Math.max(1, size / 2);
 
         /* ================== COURSE BUTTONS ================== */
         for (int i = 0; i < courses.size(); i++) {
 
             ButtonDto button = new ButtonDto(
-                    String.valueOf(startIndex + i + 1),   // 1,2,3,4...
+                    String.valueOf(startIndex + i + 1),
                     ButtonType.INLINE,
-                    String.valueOf(courses.get(i).getId()) // courseId
+                    String.valueOf(courses.get(i).getId())
             );
+
             row.add(button);
-            if (row.size() == 2) {
+
+            if (row.size() == perRow) {
                 rows.add(row);
                 row = new ArrayList<>();
             }
@@ -106,7 +112,11 @@ public class UserKyb {
             rows.add(navRow);
         }
 
+        /* ================== BACK ================== */
+        rows.add(List.of(
+                new ButtonDto("⬅️ Orqaga", ButtonType.INLINE, "back_menu")
+        ));
+
         return rows;
     }
-
 }
