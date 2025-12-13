@@ -39,6 +39,7 @@ import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -228,72 +229,124 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
 
     @Override
     public ResponseDto<TeacherCourseResponseDto> createCourse(TeacherCourseCreateRequestDto request) {
-        Optional<Course> courseOptional = courseRepository.findAdminBySlug(request.getSlug());
-        if (courseOptional.isPresent()) {
-            return new ResponseDto<>(false, "Bu slug band. Siz kiritgan slug: " + request.getSlug());
+
+        // 0) Slug unique
+        if (courseRepository.findAdminBySlug(request.getSlug()).isPresent()) {
+            return ResponseDto.error("Bu slug band. Siz kiritgan slug: " + request.getSlug());
         }
-        // 1) Category tekshirish
-        Optional<Category> cOp = categoryRepository.teacherFindById(request.getCategoryId());
-        if (cOp.isEmpty())
-            return ResponseDto.error("Kategoriya topilmadi!");
 
-        Category category = cOp.get();
+        // 1) Teacher
+        Teacher teacher = teacherRepository.findById(request.getTeacherId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Bunday ID li teacher topilmadi. Teacher ID: " + request.getTeacherId())
+                );
 
-        // 2) Pricing validatsiya (discount bilan bo‘lsa)
-        if (request.getDiscountPrice() != null && request.getDiscountPercent() != null)
-            return ResponseDto.error("Chegirma summasi va chegirma foizi bir vaqtda berilmaydi!");
+        // 2) Category
+        Category category = categoryRepository.findAdminByCategoryId(request.getCategoryId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Kategoriya topilmadi!")
+                );
 
-        if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) <= 0)
+        // 3) Price majburiy
+        BigDecimal price = request.getPrice();
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
             return ResponseDto.error("Kurs narxi 0 dan katta bo‘lishi kerak!");
+        }
 
-        // 3) ENTITY yaratish
-        Course course = courseMapper.toEntityFromCreateRequest(request);
-        course.setCategory(category);
-        Optional<Teacher> tOp = teacherRepository.findById(request.getTeacherId());
-        if (tOp.isEmpty()) return new ResponseDto<>(false, "Teacher not found id:  " + request.getTeacherId());
-        course.setTeacher(tOp.get());
-        // 1) Slug bo'sh bo‘lsa yoki null bo‘lsa → xato
+        // 4) Slug validatsiya
         if (request.getSlug() == null || request.getSlug().isBlank()) {
             return ResponseDto.error("Slug bo‘sh bo‘lishi mumkin emas!");
         }
 
-// 2) Slug formatini tekshirish
         String slugRegex = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
-
         if (!request.getSlug().matches(slugRegex)) {
             return ResponseDto.error(
-                    "Slug noto‘g‘ri formatda! To‘g‘ri format: faqat kichik harflar (a–z), raqamlar (0–9) va tire (-). " +
-                            "Masalan: 'java-kurs', 'backend-bootcamp', 'spring-boot-101'"
+                    "Slug noto‘g‘ri formatda! Masalan: 'java-backend', 'spring-boot-101'"
             );
         }
 
-        // 6) Chegirma logikasi — yangi kursnarxni hisoblash
-        BigDecimal finalPrice = request.getFinalPrice();
-        BigDecimal price = request.getPrice();
+        // ================= PRICE LOGIC =================
+        BigDecimal finalPrice;
+        BigDecimal discountPrice;
+        Integer discountPercent;
 
-        if (finalPrice != null) {
-            // Eng ustuvor
-            course.setFinalPrice(finalPrice);
-            course.setDiscountPercent(null);
-            course.setDiscountPrice(null);
+        if (request.getFinalPrice() != null) {
+            // price + finalPrice → qolganlarini hisoblaymiz
+            finalPrice = request.getFinalPrice();
+
+            if (finalPrice.compareTo(price) > 0) {
+                return ResponseDto.error("Final price asosiy narxdan katta bo‘lishi mumkin emas!");
+            }
+
+            discountPrice = price.subtract(finalPrice);
+
+            discountPercent = discountPrice
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(price, 0, RoundingMode.HALF_UP)
+                    .intValue();
+
         } else if (request.getDiscountPercent() != null) {
-            BigDecimal percent =
-                    price.multiply(BigDecimal.valueOf(request.getDiscountPercent()))
-                            .divide(BigDecimal.valueOf(100));
-            course.setFinalPrice(price.subtract(percent));
+            // price + percent
+            discountPercent = request.getDiscountPercent();
+
+            if (discountPercent < 0 || discountPercent > 100) {
+                return ResponseDto.error("Chegirma foizi 0–100 oralig‘ida bo‘lishi kerak!");
+            }
+
+            discountPrice = price
+                    .multiply(BigDecimal.valueOf(discountPercent))
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+            finalPrice = price.subtract(discountPrice);
+
         } else if (request.getDiscountPrice() != null) {
-            course.setFinalPrice(price.subtract(request.getDiscountPrice()));
+            // price + discountPrice
+            discountPrice = request.getDiscountPrice();
+
+            if (discountPrice.compareTo(BigDecimal.ZERO) < 0 ||
+                    discountPrice.compareTo(price) > 0) {
+                return ResponseDto.error("Chegirma summasi noto‘g‘ri!");
+            }
+
+            finalPrice = price.subtract(discountPrice);
+
+            discountPercent = discountPrice
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(price, 0, RoundingMode.HALF_UP)
+                    .intValue();
+
         } else {
-            course.setFinalPrice(price);
+            // faqat price → chegirma yo‘q
+            discountPrice = BigDecimal.ZERO;
+            discountPercent = 0;
+            finalPrice = price;
         }
 
-        // 7) Sana
+        // ================= ENTITY =================
+        Course course = courseMapper.toEntityFromCreateRequest(request);
+        course.setCategory(category);
+        course.setTeacher(teacher);
+        if (request.getDiscountStartAt() == null || request.getDiscountEndAt() == null) {
+            return new ResponseDto<>(false, "Chegirma boshlanish vaqti va tugash vaqtini kiritishingiz kerak");
+        }
+        course.setDiscountStartAt(request.getDiscountStartAt());
+        course.setDiscountEndAt(request.getDiscountEndAt());
+        course.setPrice(price);
+        course.setFinalPrice(finalPrice);
+        course.setDiscountPrice(discountPrice);
+        course.setDiscountPercent(discountPercent);
+
         course.setCreated(CurrentTime.currentTime());
         course.setUpdated(CurrentTime.currentTime());
         course.setPromoCodes(new ArrayList<>());
         course.setSlug(request.getSlug());
+
         Course saved = courseRepository.save(course);
-        return ResponseDto.ok("Kurs muvaffaqiyatli yaratildi!", courseMapper.toDto(saved));
+
+        return ResponseDto.ok(
+                "Kurs muvaffaqiyatli yaratildi!",
+                courseMapper.toDto(saved)
+        );
     }
 
     @Override

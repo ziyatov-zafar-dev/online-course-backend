@@ -62,12 +62,13 @@ public class SecurityConfig {
                                 "/api/auth/sign-up", "/api/auth/sign-up/verify",
                                 "/api/auth/forgot-password", "/api/auth/reset-password",
                                 "/api/auth/refresh-token", "/api/auth/gemini/**", "api/auth/**",
-                                "/uploads/**","/api/telegram/**","/telegram/**",
+                                "/uploads/**", "/api/telegram/**", "/telegram/**",
                                 "/oauth2/**", "/login/oauth2/**",
                                 "/swagger-ui/**", "/v3/api-docs/**")
                         .permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/teacher/**").hasRole("TEACHER")
+                        .requestMatchers("/api/admin/**", "/api/payme/**").hasRole("ADMIN")
+                        .requestMatchers("/api/teacher/**", "/api/payme/**").hasRole("TEACHER")
+                        .requestMatchers("/api/payme/**").hasRole("STUDENT")
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

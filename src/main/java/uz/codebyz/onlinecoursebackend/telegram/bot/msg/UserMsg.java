@@ -141,7 +141,6 @@ public class UserMsg {
                     .append("</b>\n\n");
 
         } else {
-
             sb.append("💰 Narx: <b>Bepul</b>\n\n");
         }
         int moduleCount = 0;

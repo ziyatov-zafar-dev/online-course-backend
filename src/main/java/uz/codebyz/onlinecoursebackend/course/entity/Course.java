@@ -84,13 +84,6 @@ public class Course {
         this.promoCodes = promoCodes;
     }
 
-   /* public Teacher getTeacher() {
-        return teacher;
-    }
-
-    public void setTeacher(Teacher teacher) {
-        this.teacher = teacher;
-    }*/
 
     public List<Module> getModules() {
         return modules;
