@@ -138,6 +138,9 @@ public class UsersTelegramBotFunction {
                         messageId, msg.aboutAllCourses(),
                         kyb.getAllCourses(courses, null)
                 );
+                for (int i = 0; i < courses.size(); i++) {
+                    bot.sendMessage(user.getChatId(), courses.get(i).toString(), true);
+                }
 
             }
 

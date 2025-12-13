@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+
 @Table(name = "courses")
 public class Course {
     @Id
@@ -347,5 +348,43 @@ public class Course {
 
     public void setCertificates(List<Certificate> certificates) {
         this.certificates = certificates;
+    }
+
+    @Override
+    public String toString() {
+        return "Course{" +
+                "id=" + id +
+                ", category=" + category +
+                ", teacher=" + teacher +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", active=" + active +
+                ", deleted=" + deleted +
+                ", slug='" + slug + '\'' +
+                ", orderNumber=" + orderNumber +
+                ", telegramGroupLink='" + telegramGroupLink + '\'' +
+                ", telegramChannelLink='" + telegramChannelLink + '\'' +
+                ", hasTelegramGroup=" + hasTelegramGroup +
+                ", hasTelegramChannel=" + hasTelegramChannel +
+                ", status=" + status +
+                ", discountPrice=" + discountPrice +
+                ", price=" + price +
+                ", finalPrice=" + finalPrice +
+                ", discountPercent=" + discountPercent +
+                ", discountStartAt=" + discountStartAt +
+                ", discountEndAt=" + discountEndAt +
+                ", imgName='" + imgName + '\'' +
+                ", imgUrl='" + imgUrl + '\'' +
+                ", imgSize=" + imgSize +
+                ", promoCourseVideoUrl='" + promoCourseVideoUrl + '\'' +
+                ", promoCourseVideoFileName='" + promoCourseVideoFileName + '\'' +
+                ", promoCourseVideoFileSize=" + promoCourseVideoFileSize +
+                ", created=" + created +
+                ", updated=" + updated +
+                ", promoCodes=" + promoCodes +
+                ", skills=" + skills +
+                ", modules=" + modules +
+                ", certificates=" + certificates +
+                '}';
     }
 }
