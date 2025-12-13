@@ -1,5 +1,6 @@
 package uz.codebyz.onlinecoursebackend.telegram.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.telegram.bot.TelegramBot;
@@ -13,7 +14,8 @@ import java.util.List;
 
 @Service
 public class UsersTelegramBotFunction {
-
+    @Value("${auth-frontend.login-url}")
+    private String frontendBaseUrl;
     private final TelegramBot bot;
     private final BotUserService userService;
 
@@ -54,7 +56,7 @@ public class UsersTelegramBotFunction {
         }
 
         String loginUrl =
-                "https://online-course-tg-bot-for-users-up37-5p5csufu1.vercel.app"
+                frontendBaseUrl
                         + "/auth/telegram?chatId=" + chatId;
         String text = """
                 👋 Assalomu alaykum! <b>%s</b>
