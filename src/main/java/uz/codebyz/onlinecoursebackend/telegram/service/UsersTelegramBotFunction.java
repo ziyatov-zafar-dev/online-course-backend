@@ -65,11 +65,26 @@ public class UsersTelegramBotFunction {
             String loginUrl =
                     frontendBaseUrl
                             + "/auth/telegram?chatId=" + chatId;
+//            String text;
+//            try {
+//                text = """
+//                        👋 Assalomu alaykum! <b>%s</b>
+//
+//                        Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
+//                        """.formatted(firstName + (lastName.isEmpty() ? "" : " " + lastName));
+//            } catch (Exception e) {
+//                text = """
+//                        👋 Assalomu alaykum! <b>%s</b>
+//
+//                        Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
+//                        """.formatted(firstName);
+//
+//            }
             String text = """
                     👋 Assalomu alaykum! <b>%s</b>
                     
                     Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
-                    """.formatted(firstName + (lastName.isEmpty() ? "" : " " + lastName));
+                    """.formatted(firstName + ((lastName == null || lastName.isEmpty()) ? "" : " " + lastName));
             bot.sendMessage(
                     chatId,
                     text,
