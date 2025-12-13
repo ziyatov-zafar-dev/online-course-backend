@@ -1,59 +1,70 @@
 package uz.codebyz.onlinecoursebackend.telegram.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import uz.codebyz.onlinecoursebackend.telegram.config.TelegramProperties;
+import uz.codebyz.onlinecoursebackend.common.ResponseDto;
+import uz.codebyz.onlinecoursebackend.telegram.dto.TelegramUpdateData;
+import uz.codebyz.onlinecoursebackend.telegram.entity.EventCode;
+import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
+import uz.codebyz.onlinecoursebackend.telegram.util.TelegramUpdateExtractor;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Service
 public class TelegramUsersService {
 
-    private final TelegramProperties props;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final UsersTelegramBotFunction functions;
+    private final BotUserService botUserService;
 
-    public TelegramUsersService(TelegramProperties props) {
-        this.props = props;
+    public TelegramUsersService(UsersTelegramBotFunction functions, BotUserService botUserService) {
+        this.functions = functions;
+        this.botUserService = botUserService;
     }
 
     @SuppressWarnings("unchecked")
     public void handleUpdate(Map<String, Object> update) {
+        TelegramUpdateData updateData = TelegramUpdateExtractor.extract(update);
+        /* ================= CALLBACK QUERY ================= */
+        if (updateData.getType() == TelegramUpdateData.MessageType.CALLBACK) {
 
+            Map<String, Object> callback =
+                    (Map<String, Object>) update.get("callback_query");
+
+            String data = updateData.getCallbackData();
+
+            System.out.println("📌 CALLBACK QUERY KELDI");
+            System.out.println("Data: " + data);
+
+            // hozircha faqat log, keyin shu yerda dispatch qilamiz
+            return;
+        }
+
+        /* ================= MESSAGE ================= */
         if (!update.containsKey("message")) return;
 
-        Map<String, Object> message = (Map<String, Object>) update.get("message");
+        Map<String, Object> message =
+                (Map<String, Object>) update.get("message");
+
         String text = (String) message.get("text");
+        if (text == null) return;
 
-        if (text == null || !text.startsWith("/start")) return;
+        Map<String, Object> chat =
+                (Map<String, Object>) message.get("chat");
 
-        Map<String, Object> chat = (Map<String, Object>) message.get("chat");
         Long chatId = Long.valueOf(chat.get("id").toString());
 
-        String loginUrl =
-                "https://online-course-tg-bot-for-users-up37-5p5csufu1.vercel.app"
-                        + "/auth/telegram?chatId=" + chatId;
-
-        String response = """
-                👋 Assalomu alaykum!
-                
-                CodeByZ platformasiga kirish uchun pastdagi havola orqali login qiling:
-                
-                🔐 %s
-                """.formatted(loginUrl);
-
-        sendMessage(chatId, response);
+        /* ===== COMMAND DISPATCH ===== */
+        if (text.startsWith("/start")) {
+            functions.start(chatId, updateData.getFirstName(), updateData.getLastName(), updateData.getUsername());
+            return;
+        } else {
+            ResponseDto<TelegramUser> checkUser = botUserService.getUser(chatId);
+            if (!checkUser.isSuccess()) return;
+            TelegramUser user = checkUser.getData();
+            EventCode eventCode = user.getEventCode();
+            if (eventCode == EventCode.MENU) {
+                functions.menu(user);
+            }
+        }
     }
 
-    private void sendMessage(Long chatId, String text) {
-
-        String token = props.getUsers().getBot().getToken();
-
-        String url = "https://api.telegram.org/bot" + token
-                + "/sendMessage?chat_id=" + chatId
-                + "&text=" + URLEncoder.encode(text, StandardCharsets.UTF_8);
-
-        restTemplate.getForObject(url, String.class);
-    }
 }
