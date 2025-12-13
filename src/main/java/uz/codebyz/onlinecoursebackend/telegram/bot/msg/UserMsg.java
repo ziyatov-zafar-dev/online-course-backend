@@ -1,12 +1,16 @@
 package uz.codebyz.onlinecoursebackend.telegram.bot.msg;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 import uz.codebyz.onlinecoursebackend.course.entity.Course;
 import uz.codebyz.onlinecoursebackend.telegram.bot.kyb.UserKyb;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class UserMsg {
@@ -74,68 +78,90 @@ public class UserMsg {
         sb.append("\n\n👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
 
         return sb.toString();
-    }*/public String aboutCourse(Course course) {
+    }*/
+
+
+    public String aboutCourse(Course course) {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("📘 *").append(course.getName()).append("*\n\n");
+        sb.append("📘 <b>")
+                .append(HtmlUtils.htmlEscape(course.getName()))
+                .append("</b>\n\n");
 
-        // Tavsif
         if (course.getDescription() != null && !course.getDescription().isBlank()) {
-            sb.append("📝 ").append(course.getDescription()).append("\n\n");
+            sb.append("📝 ")
+                    .append(HtmlUtils.htmlEscape(course.getDescription()))
+                    .append("\n\n");
         }
 
         BigDecimal price = course.getPrice();
         BigDecimal finalPrice = course.getFinalPrice();
 
-        // ===== NARX BLOKI =====
-        if (price != null && finalPrice != null && finalPrice.compareTo(price) < 0) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = course.getDiscountStartAt();
+        LocalDateTime end = course.getDiscountEndAt();
+
+        boolean discountActive =
+                price != null
+                        && finalPrice != null
+                        && finalPrice.compareTo(price) < 0
+                        && start != null
+                        && end != null
+                        && !now.isBefore(start)
+                        && !now.isAfter(end);
+
+        /* ================= PRICE BLOCK ================= */
+        if (discountActive) {
 
             BigDecimal discountAmount = price.subtract(finalPrice);
 
-            Integer discountPercent = course.getDiscountPercent();
-            if (discountPercent == null) {
-                discountPercent = discountAmount
-                        .multiply(BigDecimal.valueOf(100))
-                        .divide(price, 0, RoundingMode.HALF_UP)
-                        .intValue();
-            }
+            int discountPercent = discountAmount
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(price, 0, RoundingMode.HALF_UP)
+                    .intValue();
 
-            sb.append("💰 Narx: ~")
-                    .append(price.toPlainString())
-                    .append(" so‘m~  →  *")
-                    .append(finalPrice.toPlainString())
-                    .append(" so‘m*\n");
+            sb.append("💰 Narx: <s>")
+                    .append(formatMoney(price))
+                    .append("</s> → <b>")
+                    .append(formatMoney(finalPrice))
+                    .append("</b>\n");
 
             sb.append("🔥 Chegirma: ")
                     .append(discountPercent)
-                    .append("%  (−")
-                    .append(discountAmount.toPlainString())
-                    .append(" so‘m)\n\n");
+                    .append("% (−")
+                    .append(formatMoney(discountAmount))
+                    .append(")\n\n");
 
         } else if (price != null) {
 
-            sb.append("💰 Narx: *")
-                    .append(price.toPlainString())
-                    .append(" so‘m*\n\n");
+            sb.append("💰 Narx: <b>")
+                    .append(formatMoney(price))
+                    .append("</b>\n\n");
+
+        } else {
+
+            sb.append("💰 Narx: <b>Bepul</b>\n\n");
         }
 
-        // ===== MODUL / SKILL =====
+        /* ================= INFO ================= */
         if (course.getModules() != null && !course.getModules().isEmpty()) {
             sb.append("📦 Modullar soni: ")
                     .append(course.getModules().size())
                     .append("\n");
         }
 
-        if (course.getSkills() != null && !course.getSkills().isEmpty()) {
-            sb.append("🎯 O‘rganiladigan skilllar: ")
-                    .append(course.getSkills().size())
-                    .append("\n");
-        }
-
         sb.append("\n👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
 
         return sb.toString();
+    }
+
+
+
+    private String formatMoney(BigDecimal amount) {
+        return NumberFormat
+                .getInstance(new Locale("uz", "UZ"))
+                .format(amount) + " so‘m";
     }
 
 
