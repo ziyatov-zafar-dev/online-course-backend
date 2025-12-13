@@ -37,7 +37,7 @@ public class TelegramUsersService {
                 telegramBot.deleteMessage(updateData.getChatId(), updateData.getMessageId());
                 functions.start(updateData.getChatId(), updateData.getFirstName(), updateData.getLastName(), updateData.getUsername());
             } else {
-us
+
             }
         }
 
