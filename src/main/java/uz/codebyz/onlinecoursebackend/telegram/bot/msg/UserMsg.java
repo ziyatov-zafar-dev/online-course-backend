@@ -3,6 +3,8 @@ package uz.codebyz.onlinecoursebackend.telegram.bot.msg;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 import uz.codebyz.onlinecoursebackend.course.entity.Course;
+import uz.codebyz.onlinecoursebackend.lesson.entity.Lesson;
+import uz.codebyz.onlinecoursebackend.module.entity.Module;
 import uz.codebyz.onlinecoursebackend.telegram.bot.kyb.UserKyb;
 
 import java.math.BigDecimal;
@@ -142,13 +144,36 @@ public class UserMsg {
 
             sb.append("💰 Narx: <b>Bepul</b>\n\n");
         }
+        int moduleCount = 0;
+        int lessonCount = 0;
+        if (course.getModules() != null) {
+            for (Module module : course.getModules()) {
 
-        /* ================= INFO ================= */
-        if (course.getModules() != null && !course.getModules().isEmpty()) {
-            sb.append("📦 Modullar soni: ")
-                    .append(course.getModules().size())
-                    .append("\n");
+                if (Boolean.TRUE.equals(module.getActive())
+                        && Boolean.FALSE.equals(module.getDeleted())) {
+
+                    moduleCount++;
+
+                    if (module.getLessons() != null) {
+                        for (Lesson lesson : module.getLessons()) {
+
+                            if (Boolean.TRUE.equals(lesson.getActive())
+                                    && Boolean.FALSE.equals(lesson.getDeleted())) {
+                                lessonCount++;
+                            }
+                        }
+                    }
+                }
+            }
         }
+        /* ================= INFO ================= */
+        sb.append("📦 Modullar soni: ")
+                .append(moduleCount)
+                .append("\n");
+
+        sb.append("📚 Darslar soni: ")
+                .append(lessonCount)
+                .append("\n");
 
         sb.append("\n👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
 
