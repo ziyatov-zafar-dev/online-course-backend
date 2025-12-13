@@ -1,5 +1,6 @@
 package uz.codebyz.onlinecoursebackend.telegram.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.codebyz.onlinecoursebackend.telegram.service.TelegramUsersService;
@@ -7,6 +8,7 @@ import uz.codebyz.onlinecoursebackend.telegram.service.TelegramUsersService;
 import java.util.Map;
 
 @RestController
+@Hidden
 @RequestMapping("/telegram/users")
 public class TelegramUsersWebhookController {
 
