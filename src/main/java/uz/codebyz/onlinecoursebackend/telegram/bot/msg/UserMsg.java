@@ -58,22 +58,6 @@ public class UserMsg {
                     .append(course.getPrice())
                     .append(" so‘m*\n\n");
         }
-
-        // Telegram linklar
-        if (Boolean.TRUE.equals(course.getHasTelegramGroup())
-                && course.getTelegramGroupLink() != null) {
-            sb.append("👥 Guruh: ")
-                    .append(course.getTelegramGroupLink())
-                    .append("\n");
-        }
-
-        if (Boolean.TRUE.equals(course.getHasTelegramChannel())
-                && course.getTelegramChannelLink() != null) {
-            sb.append("📢 Kanal: ")
-                    .append(course.getTelegramChannelLink())
-                    .append("\n");
-        }
-
         // Modul va skill soni
         if (course.getModules() != null && !course.getModules().isEmpty()) {
             sb.append("\n📦 Modullar soni: ")
