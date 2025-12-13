@@ -37,7 +37,13 @@ public class TelegramUsersService {
                 telegramBot.deleteMessage(updateData.getChatId(), updateData.getMessageId());
                 functions.start(updateData.getChatId(), updateData.getFirstName(), updateData.getLastName(), updateData.getUsername());
             } else {
-
+                ResponseDto<TelegramUser> checkUser = botUserService.getUser(updateData.getChatId());
+                if (!checkUser.isSuccess()) return;
+                TelegramUser user = checkUser.getData();
+                EventCode eventCode = user.getEventCode();
+                if (eventCode == EventCode.MENU) {
+                    functions.menu(user, data, callback,updateData.getMessageId());
+                }
             }
         }
 
@@ -64,7 +70,7 @@ public class TelegramUsersService {
             TelegramUser user = checkUser.getData();
             EventCode eventCode = user.getEventCode();
             if (eventCode == EventCode.MENU) {
-                functions.menu(user);
+
             }
         }
     }

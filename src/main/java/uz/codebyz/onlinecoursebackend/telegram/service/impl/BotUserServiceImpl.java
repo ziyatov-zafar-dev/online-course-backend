@@ -7,7 +7,9 @@ import uz.codebyz.onlinecoursebackend.telegram.entity.BotUserStatus;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
 import uz.codebyz.onlinecoursebackend.telegram.repository.TelegramUserRepository;
 import uz.codebyz.onlinecoursebackend.telegram.service.BotUserService;
+import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.user.UserRepository;
+import uz.codebyz.onlinecoursebackend.user.UserRole;
 
 import java.util.Optional;
 
@@ -72,5 +74,15 @@ public class BotUserServiceImpl implements BotUserService {
             return new ResponseDto<>(true, "Success", telegramUser);
         }
         return new ResponseDto<>(false, "Fail");
+    }
+
+    @Override
+    public UserRole getRole(Long chatId) {
+        Optional<User> uOp = userRepository.findByChatId(chatId);
+        if (uOp.isPresent()) {
+            User user = uOp.get();
+            return user.getRole();
+        }
+        return null;
     }
 }

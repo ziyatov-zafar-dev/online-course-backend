@@ -166,4 +166,45 @@ public class TelegramBot {
 
         restTemplate.postForObject(url, body, String.class);
     }
+
+    @SuppressWarnings("unchecked")
+    public void alertMessage(Map<String, Object> callback, String alertMessageText) {
+
+        try {
+            // callback_query.id ni olish
+            String callbackQueryId = (String) callback.get("id");
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("callback_query_id", callbackQueryId);
+            body.put("text", alertMessageText);
+            body.put("show_alert", true); // 🔥 popup (alert)
+            post("/answerCallbackQuery", body);
+            log.info("Alert sent to callbackQueryId={}", callbackQueryId);
+
+        } catch (Exception e) {
+            log.error("Error while sending alertMessage: {}", e.getMessage(), e);
+        }
+    }
+
+    public void sendPhoto(
+            Long chatId,
+            String photoUrl,
+            String caption,
+            List<List<ButtonDto>> buttons
+    ) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("chat_id", chatId);
+        body.put("photo", photoUrl);
+        body.put("caption", caption);
+        body.put("parse_mode", "HTML");
+
+        if (buttons != null && !buttons.isEmpty()) {
+            body.put("reply_markup", buildKeyboard(buttons));
+        }
+
+        post("/sendPhoto", body);
+    }
+
+
 }

@@ -3,25 +3,31 @@ package uz.codebyz.onlinecoursebackend.telegram.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
+import uz.codebyz.onlinecoursebackend.course.entity.Course;
 import uz.codebyz.onlinecoursebackend.telegram.bot.TelegramBot;
+import uz.codebyz.onlinecoursebackend.telegram.bot.kyb.Kyb;
 import uz.codebyz.onlinecoursebackend.telegram.dto.ButtonDto;
 import uz.codebyz.onlinecoursebackend.telegram.dto.ButtonType;
 import uz.codebyz.onlinecoursebackend.telegram.entity.BotUserStatus;
 import uz.codebyz.onlinecoursebackend.telegram.entity.EventCode;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
+import uz.codebyz.onlinecoursebackend.user.UserRole;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UsersTelegramBotFunction {
+    private final Kyb kyb;
     @Value("${auth-frontend.login-url}")
     private String frontendBaseUrl;
     private final TelegramBot bot;
     private final BotUserService userService;
 
-    public UsersTelegramBotFunction(TelegramBot bot, BotUserService userService) {
+    public UsersTelegramBotFunction(TelegramBot bot, BotUserService userService, Kyb kyb) {
         this.bot = bot;
         this.userService = userService;
+        this.kyb = kyb;
     }
 
     /* ================= START ================= */
@@ -29,17 +35,15 @@ public class UsersTelegramBotFunction {
     public void start(Long chatId, String firstName, String lastName, String username) {
         ResponseDto<Void> checkUser = userService.checkUser(chatId);
         if (checkUser.isSuccess()) {
-            System.out.println("User mavjud");
+
             ResponseDto<TelegramUser> checkTelegramUser = userService.checkTelegramUser(chatId);
             TelegramUser user;
             if (checkTelegramUser.isSuccess()) {
                 System.err.println("Telegram User mavjud");
                 if (checkTelegramUser.getData().getStatus() == BotUserStatus.BLOCK) {
-                    System.err.println("User blok");
                     bot.sendMessage(chatId, checkTelegramUser.getMessage(), true);
                     return;
                 } else {
-                    System.err.println("User blok emas");
                     user = checkTelegramUser.getData();
                     user.setEventCode(EventCode.MENU);
                     user = userService.save(user);
@@ -57,10 +61,23 @@ public class UsersTelegramBotFunction {
                 user = savedUser.getData();
 
             }
-            menu(user);
-            return;
+            if (userService.getRole(user.getChatId()) == UserRole.STUDENT) {
+                bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
+                user.setEventCode(EventCode.MENU);
+                user = userService.save(user);
+                return;
+            } else bot.sendMessage(
+                    chatId,
+                    """
+                            ❌ <b>Kirish rad etildi</b>
+                            
+                            ⚠️ Ushbu bot <b>faqat talabalarga</b> mo‘ljallangan.
+                            
+                            Agar siz <b>o‘qituvchi</b> yoki <b>administrator</b> bo‘lsangiz,
+                            iltimos, o‘zingizga mos botdan foydalaning.""",
+                    true
+            );
         }
-        System.err.println("User mavjud emas");
         try {
             String loginUrl =
                     frontendBaseUrl
@@ -106,7 +123,21 @@ public class UsersTelegramBotFunction {
         }
     }
 
-    public void menu(TelegramUser user) {
-        bot.sendMessage(user.getChatId(), "Asosiy menyudasiz");
+    public void menu(TelegramUser user, String data, Map<String, Object> callback, Integer messageId) {
+        switch (data) {
+
+            case "all_courses" -> {
+/*
+                bot.editMessageText(
+                        user.getChatId(), messageId, "", kyb.courseBtn()
+                );
+*/
+            }
+
+            case "my_certificates", "all_payment" -> bot.alertMessage(callback, "⚠️ Bu funksiya hozircha mavjud emas");
+
+            default -> bot.alertMessage(callback, "❌ Noma’lum buyruq");
+        }
+
     }
 }

@@ -1,13 +1,8 @@
 package uz.codebyz.onlinecoursebackend.telegram.service;
 
-import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
-import uz.codebyz.onlinecoursebackend.telegram.entity.BotUserStatus;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
-import uz.codebyz.onlinecoursebackend.user.User;
-import uz.codebyz.onlinecoursebackend.user.UserRepository;
-
-import java.util.Optional;
+import uz.codebyz.onlinecoursebackend.user.UserRole;
 
 
 public interface BotUserService {
@@ -19,4 +14,6 @@ public interface BotUserService {
     TelegramUser save(TelegramUser user);
 
     ResponseDto<TelegramUser> getUser(Long chatId);
+
+    UserRole getRole(Long chatId);
 }
