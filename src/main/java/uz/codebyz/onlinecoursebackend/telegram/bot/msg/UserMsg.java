@@ -94,6 +94,7 @@ public class UserMsg {
                     .append(HtmlUtils.htmlEscape(course.getDescription()))
                     .append("\n\n");
         }
+
         BigDecimal price = course.getPrice();
         BigDecimal finalPrice = course.getFinalPrice();
 
@@ -113,24 +114,11 @@ public class UserMsg {
         /* ================= PRICE BLOCK ================= */
         if (discountActive) {
 
-            BigDecimal discountAmount = price.subtract(finalPrice);
-
-            int discountPercent = discountAmount
-                    .multiply(BigDecimal.valueOf(100))
-                    .divide(price, 0, RoundingMode.HALF_UP)
-                    .intValue();
-
             sb.append("💰 Narx: <s>")
                     .append(formatMoney(price))
                     .append("</s> → <b>")
                     .append(formatMoney(finalPrice))
-                    .append("</b>\n");
-
-            sb.append("🔥 Chegirma: ")
-                    .append(discountPercent)
-                    .append("% (−")
-                    .append(formatMoney(discountAmount))
-                    .append(")\n\n");
+                    .append("</b>\n\n");
 
         } else if (price != null) {
 
@@ -139,16 +127,14 @@ public class UserMsg {
                     .append("</b>\n\n");
 
         } else {
-
             sb.append("💰 Narx: <b>Bepul</b>\n\n");
         }
 
-
-
-        sb.append("\n👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
+        sb.append("👇 Kursni tanlash uchun pastdagi tugmalardan foydalaning");
 
         return sb.toString();
     }
+
 
 
     private String formatMoney(BigDecimal amount) {
