@@ -183,5 +183,5 @@ admin:
   password: Zafar123$
   username: admin
 auth-frontend:
-  login-url: online-course-tg-bot-for-users-scew.vercel.app
+  login-url: https://online-course-tg-bot-for-users-scew.vercel.app
 #  login-url: https://online-course-tg-bot-for-users-9u8c.vercel.app
