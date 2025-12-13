@@ -148,9 +148,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         Optional<Category> cOp = categoryRepository.findAdminByCategoryId(request.getCategoryId());
         if (cOp.isEmpty())
             return ResponseDto.error("Kategoriya topilmadi!");
-
         Category category = cOp.get();
-
         // 2) Pricing validatsiya (discount bilan bo‘lsa)
         if (request.getDiscountPrice() != null && request.getDiscountPercent() != null)
             return ResponseDto.error("Chegirma summasi va chegirma foizi bir vaqtda berilmaydi!");
@@ -161,7 +159,7 @@ public class AdminCourseServiceImpl implements AdminCourseService {
         // 3) ENTITY yaratish
         Course course = AdminCourseMapper.toEntityFromCreateRequest(request);
         course.setCategory(category);
-
+        course.setTeacher(tOp.get());
         // 1) Slug bo'sh bo‘lsa yoki null bo‘lsa → xato
         if (request.getSlug() == null || request.getSlug().isBlank()) {
             return ResponseDto.error("Slug bo‘sh bo‘lishi mumkin emas!");

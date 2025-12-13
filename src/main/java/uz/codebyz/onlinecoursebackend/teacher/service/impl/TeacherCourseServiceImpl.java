@@ -33,6 +33,7 @@ import uz.codebyz.onlinecoursebackend.teacher.dto.promoCodeDtos.TeacherCreatePro
 import uz.codebyz.onlinecoursebackend.teacher.entity.Teacher;
 import uz.codebyz.onlinecoursebackend.teacher.mapper.TeacherCourseMapper;
 import uz.codebyz.onlinecoursebackend.teacher.mapper.TeacherCourseSkillMapper;
+import uz.codebyz.onlinecoursebackend.teacher.repository.TeacherRepository;
 import uz.codebyz.onlinecoursebackend.teacher.service.TeacherCourseService;
 import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
@@ -54,6 +55,7 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
     private final TeacherPromoCodeMapper teacherPromoCodeMapper;
     private final SkillRepository skillRepository;
     private final TeacherCourseSkillMapper teacherCourseSkillMapper;
+    private final TeacherRepository teacherRepository;
     @Value("${course.skill.icon}")
     private String skillIconBaseUrl;
     @Value("${course.image.url}")
@@ -61,7 +63,7 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
     @Value("${course.video.url}")
     private String baseCourseVideoPath;
 
-    public TeacherCourseServiceImpl(CourseRepository courseRepository, TeacherCourseMapper courseMapper, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, UserDeviceService userDeviceService, TeacherPromoCodeMapper teacherPromoCodeMapper, SkillRepository skillRepository, TeacherCourseSkillMapper teacherCourseSkillMapper) {
+    public TeacherCourseServiceImpl(CourseRepository courseRepository, TeacherCourseMapper courseMapper, CategoryRepository categoryRepository, PromoCodeRepository promoCodeRepository, UserDeviceService userDeviceService, TeacherPromoCodeMapper teacherPromoCodeMapper, SkillRepository skillRepository, TeacherCourseSkillMapper teacherCourseSkillMapper, TeacherRepository teacherRepository) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
         this.categoryRepository = categoryRepository;
@@ -70,6 +72,7 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
         this.teacherPromoCodeMapper = teacherPromoCodeMapper;
         this.skillRepository = skillRepository;
         this.teacherCourseSkillMapper = teacherCourseSkillMapper;
+        this.teacherRepository = teacherRepository;
     }
 
     @Override
@@ -246,7 +249,9 @@ public class TeacherCourseServiceImpl implements TeacherCourseService {
         // 3) ENTITY yaratish
         Course course = courseMapper.toEntityFromCreateRequest(request);
         course.setCategory(category);
-
+        Optional<Teacher> tOp = teacherRepository.findById(request.getTeacherId());
+        if (tOp.isEmpty()) return new ResponseDto<>(false, "Teacher not found id:  " + request.getTeacherId());
+        course.setTeacher(tOp.get());
         // 1) Slug bo'sh bo‘lsa yoki null bo‘lsa → xato
         if (request.getSlug() == null || request.getSlug().isBlank()) {
             return ResponseDto.error("Slug bo‘sh bo‘lishi mumkin emas!");
