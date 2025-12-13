@@ -61,30 +61,34 @@ public class UsersTelegramBotFunction {
             return;
         }
         System.err.println("User mavjud emas");
-        String loginUrl =
-                frontendBaseUrl
-                        + "/auth/telegram?chatId=" + chatId;
-        String text = """
-                👋 Assalomu alaykum! <b>%s</b>
-                
-                Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
-                """.formatted(firstName + (lastName.isEmpty() ? "" : " " + lastName));
-        bot.sendMessage(
-                chatId,
-                text,
-                List.of(
-                        List.of(
-                                new ButtonDto(
-                                        "🔐 Shahsni tasdiqlash",
-                                        ButtonType.URL,
-                                        loginUrl
-                                )
-                        ),
-                        List.of(
-                                new ButtonDto("✅ Tasdiqlash", ButtonType.INLINE, "confirm_user")
-                        )
-                )
-        );
+        try {
+            String loginUrl =
+                    frontendBaseUrl
+                            + "/auth/telegram?chatId=" + chatId;
+            String text = """
+                    👋 Assalomu alaykum! <b>%s</b>
+                    
+                    Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
+                    """.formatted(firstName + (lastName.isEmpty() ? "" : " " + lastName));
+            bot.sendMessage(
+                    chatId,
+                    text,
+                    List.of(
+                            List.of(
+                                    new ButtonDto(
+                                            "🔐 Shahsni tasdiqlash",
+                                            ButtonType.URL,
+                                            loginUrl
+                                    )
+                            ),
+                            List.of(
+                                    new ButtonDto("✅ Tasdiqlash", ButtonType.INLINE, "confirm_user")
+                            )
+                    )
+            );
+        } catch (Exception e) {
+            bot.sendMessage(chatId, e.getMessage());
+        }
     }
 
     public void menu(TelegramUser user) {
