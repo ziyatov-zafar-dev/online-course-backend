@@ -29,18 +29,23 @@ public class UsersTelegramBotFunction {
     public void start(Long chatId, String firstName, String lastName, String username) {
         ResponseDto<Void> checkUser = userService.checkUser(chatId);
         if (checkUser.isSuccess()) {
+            System.out.println("User mavjud");
             ResponseDto<TelegramUser> checkTelegramUser = userService.checkTelegramUser(chatId);
             TelegramUser user;
             if (checkTelegramUser.isSuccess()) {
+                System.err.println("Telegram User mavjud");
                 if (checkTelegramUser.getData().getStatus() == BotUserStatus.BLOCK) {
+                    System.err.println("User blok");
                     bot.sendMessage(chatId, checkTelegramUser.getMessage(), true);
                     return;
                 } else {
+                    System.err.println("User blok emas");
                     user = checkTelegramUser.getData();
                     user.setEventCode(EventCode.MENU);
                     user = userService.save(user);
                 }
             } else {
+                System.err.println("User mavjud emas");
                 if (!lastName.isEmpty()) {
                     firstName = firstName.concat(" " + lastName);
                 }
@@ -50,11 +55,12 @@ public class UsersTelegramBotFunction {
                     return;
                 }
                 user = savedUser.getData();
+
             }
             menu(user);
             return;
         }
-
+        System.err.println("User mavjud emas");
         String loginUrl =
                 frontendBaseUrl
                         + "/auth/telegram?chatId=" + chatId;

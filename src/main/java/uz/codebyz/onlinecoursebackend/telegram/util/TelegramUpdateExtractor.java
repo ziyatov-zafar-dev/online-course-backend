@@ -12,36 +12,73 @@ public class TelegramUpdateExtractor {
 
         TelegramUpdateData data = new TelegramUpdateData();
 
-        /* ===== CALLBACK QUERY ===== */
+        /* ================= CALLBACK QUERY ================= */
         if (update.containsKey("callback_query")) {
 
-            Map<String, Object> callback = (Map<String, Object>) update.get("callback_query");
-            Map<String, Object> from = (Map<String, Object>) callback.get("from");
-            Map<String, Object> message = (Map<String, Object>) callback.get("message");
-            Map<String, Object> chat = (Map<String, Object>) message.get("chat");
+            Map<String, Object> callback =
+                    (Map<String, Object>) update.get("callback_query");
+
+            Map<String, Object> from =
+                    (Map<String, Object>) callback.get("from");
+
+            Map<String, Object> message =
+                    (Map<String, Object>) callback.get("message");
+
+            if (message != null) {
+
+                Map<String, Object> chat =
+                        (Map<String, Object>) message.get("chat");
+
+                data.setChatId(
+                        chat != null
+                                ? Long.valueOf(chat.get("id").toString())
+                                : null
+                );
+
+                // ✅ MESSAGE ID (callback_query.message.message_id)
+                data.setMessageId(
+                        message.get("message_id") != null
+                                ? Integer.valueOf(message.get("message_id").toString())
+                                : null
+                );
+            }
 
             data.setType(MessageType.CALLBACK);
             data.setCallbackData((String) callback.get("data"));
 
             fillUser(data, from);
-            data.setChatId(Long.valueOf(chat.get("id").toString()));
-
             return data;
         }
 
-        /* ===== TEXT MESSAGE ===== */
+        /* ================= TEXT MESSAGE ================= */
         if (update.containsKey("message")) {
 
-            Map<String, Object> message = (Map<String, Object>) update.get("message");
-            Map<String, Object> chat = (Map<String, Object>) message.get("chat");
-            Map<String, Object> from = (Map<String, Object>) message.get("from");
+            Map<String, Object> message =
+                    (Map<String, Object>) update.get("message");
+
+            Map<String, Object> chat =
+                    (Map<String, Object>) message.get("chat");
+
+            Map<String, Object> from =
+                    (Map<String, Object>) message.get("from");
 
             data.setType(MessageType.TEXT);
             data.setText((String) message.get("text"));
-            data.setChatId(Long.valueOf(chat.get("id").toString()));
+
+            data.setChatId(
+                    chat != null
+                            ? Long.valueOf(chat.get("id").toString())
+                            : null
+            );
+
+            // ✅ MESSAGE ID (message.message_id)
+            data.setMessageId(
+                    message.get("message_id") != null
+                            ? Integer.valueOf(message.get("message_id").toString())
+                            : null
+            );
 
             fillUser(data, from);
-
             return data;
         }
 
@@ -53,7 +90,11 @@ public class TelegramUpdateExtractor {
 
         if (from == null) return;
 
-        data.setUserId(Long.valueOf(from.get("id").toString()));
+        data.setUserId(
+                from.get("id") != null
+                        ? Long.valueOf(from.get("id").toString())
+                        : null
+        );
         data.setUsername((String) from.get("username"));
         data.setFirstName((String) from.get("first_name"));
         data.setLastName((String) from.get("last_name"));

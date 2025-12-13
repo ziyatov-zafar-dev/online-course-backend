@@ -2,6 +2,7 @@ package uz.codebyz.onlinecoursebackend.telegram.service;
 
 import org.springframework.stereotype.Service;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
+import uz.codebyz.onlinecoursebackend.telegram.bot.TelegramBot;
 import uz.codebyz.onlinecoursebackend.telegram.dto.TelegramUpdateData;
 import uz.codebyz.onlinecoursebackend.telegram.entity.EventCode;
 import uz.codebyz.onlinecoursebackend.telegram.entity.TelegramUser;
@@ -14,10 +15,12 @@ public class TelegramUsersService {
 
     private final UsersTelegramBotFunction functions;
     private final BotUserService botUserService;
+    private final TelegramBot telegramBot;
 
-    public TelegramUsersService(UsersTelegramBotFunction functions, BotUserService botUserService) {
+    public TelegramUsersService(UsersTelegramBotFunction functions, BotUserService botUserService, TelegramBot telegramBot) {
         this.functions = functions;
         this.botUserService = botUserService;
+        this.telegramBot = telegramBot;
     }
 
     @SuppressWarnings("unchecked")
@@ -30,12 +33,12 @@ public class TelegramUsersService {
                     (Map<String, Object>) update.get("callback_query");
 
             String data = updateData.getCallbackData();
-
-            System.out.println("📌 CALLBACK QUERY KELDI");
-            System.out.println("Data: " + data);
-
-            // hozircha faqat log, keyin shu yerda dispatch qilamiz
-            return;
+            if (data.equals("confirm_user")) {
+                telegramBot.deleteMessage(updateData.getChatId(), updateData.getMessageId());
+                functions.start(updateData.getChatId(), updateData.getFirstName(), updateData.getLastName(), updateData.getUsername());
+            } else {
+us
+            }
         }
 
         /* ================= MESSAGE ================= */
@@ -53,9 +56,8 @@ public class TelegramUsersService {
         Long chatId = Long.valueOf(chat.get("id").toString());
 
         /* ===== COMMAND DISPATCH ===== */
-        if (text.startsWith("/start")) {
+        if (text.equals("/start")) {
             functions.start(chatId, updateData.getFirstName(), updateData.getLastName(), updateData.getUsername());
-            return;
         } else {
             ResponseDto<TelegramUser> checkUser = botUserService.getUser(chatId);
             if (!checkUser.isSuccess()) return;

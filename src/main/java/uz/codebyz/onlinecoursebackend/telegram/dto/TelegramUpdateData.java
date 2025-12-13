@@ -6,7 +6,7 @@ public class TelegramUpdateData {
     private String username;
     private String firstName;
     private String lastName;
-
+    private Integer messageId;
     private String text;          // oddiy message
     private String callbackData;  // inline button data
 
@@ -76,6 +76,14 @@ public class TelegramUpdateData {
 
     public MessageType getType() {
         return type;
+    }
+
+    public Integer getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(Integer messageId) {
+        this.messageId = messageId;
     }
 
     public void setType(MessageType type) {

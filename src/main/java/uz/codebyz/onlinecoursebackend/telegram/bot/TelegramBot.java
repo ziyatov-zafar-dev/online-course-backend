@@ -1,5 +1,7 @@
 package uz.codebyz.onlinecoursebackend.telegram.bot;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import uz.codebyz.onlinecoursebackend.telegram.config.TelegramProperties;
@@ -9,8 +11,10 @@ import uz.codebyz.onlinecoursebackend.telegram.dto.ButtonType;
 import java.util.*;
 
 @Component
-public class TelegramBot {
 
+public class TelegramBot {
+    private static final Logger log =
+            LoggerFactory.getLogger(TelegramBot.class);
     private final TelegramProperties props;
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -28,7 +32,9 @@ public class TelegramBot {
         send(chatId, text, buttons, false);
     }
 
-    /** 🔥 YANGI: keyboardni olib tashlash */
+    /**
+     * 🔥 YANGI: keyboardni olib tashlash
+     */
     public void sendMessage(Long chatId, String text, boolean removeKeyboard) {
         send(chatId, text, null, removeKeyboard);
     }
@@ -60,12 +66,16 @@ public class TelegramBot {
     /* ================= DELETE MESSAGE ================= */
 
     public void deleteMessage(Long chatId, Integer messageId) {
+        try {
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("chat_id", chatId);
-        body.put("message_id", messageId);
+            Map<String, Object> body = new HashMap<>();
+            body.put("chat_id", chatId);
+            body.put("message_id", messageId);
 
-        post("/deleteMessage", body);
+            post("/deleteMessage", body);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     /* ================= EDIT MESSAGE ================= */
