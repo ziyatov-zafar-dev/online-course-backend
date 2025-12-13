@@ -102,7 +102,7 @@ public class UsersTelegramBotFunction {
                     
                     Bu botdan foydalanish uchun shahsingizni tasdiqlashingiz kerak
                     """.formatted(firstName + ((lastName == null || lastName.isEmpty()) ? "" : " " + lastName));
-            bot.sendMessage(
+            bot.sendMessageWithWebAppStart(
                     chatId,
                     text,
                     List.of(
@@ -112,11 +112,12 @@ public class UsersTelegramBotFunction {
                                             ButtonType.URL,
                                             loginUrl
                                     )
-                            ),
+                            )/*,
                             List.of(
                                     new ButtonDto("✅ Tasdiqlash", ButtonType.INLINE, "confirm_user")
-                            )
-                    )
+                            )*/
+                    ),
+                    loginUrl, "🔐 Shahsni tasdiqlash"
             );
         } catch (Exception e) {
             bot.sendMessage(chatId, e.getMessage());

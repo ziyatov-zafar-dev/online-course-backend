@@ -31,6 +31,60 @@ public class TelegramBot {
     public void sendMessage(Long chatId, String text, List<List<ButtonDto>> buttons) {
         send(chatId, text, buttons, false);
     }
+    public void sendMessageWithWebAppStart(
+            Long chatId,
+            String text,
+            List<List<ButtonDto>> buttons,
+            String url,
+            String name
+    ) {
+
+        List<List<Map<String, Object>>> keyboard = new ArrayList<>();
+
+        // 1️⃣ Eski buttonlarni saqlab qolish
+        if (buttons != null) {
+            for (List<ButtonDto> row : buttons) {
+                List<Map<String, Object>> keyboardRow = new ArrayList<>();
+                for (ButtonDto b : row) {
+                    keyboardRow.add(Map.of(
+                            "text", b.getText()
+                    ));
+                }
+                keyboard.add(keyboardRow);
+            }
+        }
+
+        // 2️⃣ Oxirgi qatorda 2 ta tugma (WebApp + Tasdiqlash)
+        List<Map<String, Object>> lastRow = new ArrayList<>();
+
+        // 🌐 Web App tugma
+        lastRow.add(Map.of(
+                "text", name,
+                "web_app", Map.of("url", url)
+        ));
+
+        // ✅ Tasdiqlash tugma
+        lastRow.add(Map.of(
+                "text", "✅ Tasdiqlash"
+        ));
+
+        keyboard.add(lastRow);
+
+        // 3️⃣ Request body
+        Map<String, Object> body = new HashMap<>();
+        body.put("chat_id", chatId);
+        body.put("text", text);
+        body.put("parse_mode", "HTML");
+        body.put("disable_web_page_preview", true);
+        body.put("reply_markup", Map.of(
+                "keyboard", keyboard,
+                "resize_keyboard", true,
+                "one_time_keyboard", false
+        ));
+
+        post("/sendMessage", body);
+    }
+
 
     /**
      * 🔥 YANGI: keyboardni olib tashlash

@@ -69,9 +69,6 @@ public class TelegramUsersService {
             if (!checkUser.isSuccess()) return;
             TelegramUser user = checkUser.getData();
             EventCode eventCode = user.getEventCode();
-            if (eventCode == EventCode.MENU) {
-
-            }
         }
     }
 
