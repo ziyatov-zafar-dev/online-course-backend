@@ -15,6 +15,7 @@ import uz.codebyz.onlinecoursebackend.user.UserRole;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UsersTelegramBotFunction {
@@ -65,7 +66,7 @@ public class UsersTelegramBotFunction {
                 user = savedUser.getData();
             }
             if (userService.getRole(user.getChatId()) == UserRole.STUDENT) {
-                bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
+                bot.sendMessage(user.getChatId(), "%s \uD83D\uDC4B Xush kelibsiz! Siz hozir asosiy menyudasiz".formatted(user.getNickname()), kyb.menu());
                 user.setEventCode(EventCode.MENU);
                 user = userService.save(user);
                 return;
@@ -122,30 +123,42 @@ public class UsersTelegramBotFunction {
         switch (data) {
 
             case "all_courses" -> {
-                List<Course> courses = courseRepository.getAllCoursesBot();
-                if (courses.isEmpty()) {
-                    bot.alertMessage(callback,
-                            """
-                                    🚀 CodeByZ Academy
-                                    
-                                    📚 Kurslar hozircha mavjud emas.
-                                    ⏳ Tez orada yangi kurslar qo‘shiladi!""");
-                    return;
-                }
-                bot.editMessageText(
-                        user.getChatId(),
-                        messageId, msg.aboutAllCourses(),
-                        kyb.getAllCourses(courses, null)
-                );
+                getAllCoursesWIthPagination(user, null, callback, messageId);
             }
             case "back_menu" -> {
                 //bot.sendMessage(user.getChatId(), "Asosiy menyudasiz", kyb.menu());
 
-                bot.editMessageText(user.getChatId(), messageId, "Asosiy menyudasiz", kyb.menu());
+                bot.editMessageText(user.getChatId(), messageId, "\uD83D\uDCCC Siz asosiy menyuga qaytdingiz. Quyidagilardan birini tanlang", kyb.menu());
             }
             case "my_certificates", "all_payment" -> bot.alertMessage(callback, "⚠️ Bu funksiya hozircha mavjud emas");
-            default -> bot.alertMessage(callback, "❌ Noma’lum buyruq");
+            default -> {
+                if (data.startsWith("course_id_")) {
+                    UUID courseId = UUID.fromString(data.substring("course_id_".length()));
+                    bot.alertMessage(callback, courseId.toString());
+                } else if (data.startsWith("course_page_")) {
+                    getAllCoursesWIthPagination(user, data, callback, messageId);
+                } else bot.alertMessage(callback, "❌ Noma’lum buyruq");
+            }
         }
+
+    }
+
+    private void getAllCoursesWIthPagination(TelegramUser user, String data, Map<String, Object> callback, Integer messageId) {
+        List<Course> courses = courseRepository.getAllCoursesBot();
+        if (courses.isEmpty()) {
+            bot.alertMessage(callback,
+                    """
+                            🚀 CodeByZ Academy
+                            
+                            📚 Kurslar hozircha mavjud emas.
+                            ⏳ Tez orada yangi kurslar qo‘shiladi!""");
+            return;
+        }
+        bot.editMessageText(
+                user.getChatId(),
+                messageId, msg.aboutAllCourses(),
+                kyb.getAllCourses(courses, data)
+        );
 
     }
 }

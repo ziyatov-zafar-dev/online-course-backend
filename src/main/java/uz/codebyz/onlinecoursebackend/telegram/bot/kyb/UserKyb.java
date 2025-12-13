@@ -73,7 +73,7 @@ public class UserKyb {
             ButtonDto button = new ButtonDto(
                     String.valueOf(startIndex + i + 1),
                     ButtonType.INLINE,
-                    String.valueOf(courses.get(i).getId())
+                    String.valueOf(("course_id_") + courses.get(i).getId())
             );
 
             row.add(button);
