@@ -536,6 +536,11 @@ public class AuthService {
             return ApiResponse.error("Kod noto‘g‘ri yoki muddati o‘tgan.", "INVALID_VERIFICATION_CODE");
         }
 
+        Optional<UserDevice> udOp = userDeviceRepository.findByDeviceId(deviceId);
+        if (udOp.isPresent()) {
+            return ApiResponse.error("Berilgan deviceId tizimda allaqachon mavjud"
+                    , "DUPLICATION_DEVICE");
+        }
         // 4️⃣ TO‘G‘RI VERIFICATION → BLOK RESET
         resetAttempts(deviceId);
 
