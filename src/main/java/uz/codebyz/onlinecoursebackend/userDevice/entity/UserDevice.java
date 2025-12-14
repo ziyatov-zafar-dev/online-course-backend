@@ -21,6 +21,7 @@ public class UserDevice {
 
     private String deviceId;
     private String userAgent;
+    @Column(nullable = false)
     private String ipAddress;
 
     private LocalDateTime createdAt = CurrentTime.currentTime();
