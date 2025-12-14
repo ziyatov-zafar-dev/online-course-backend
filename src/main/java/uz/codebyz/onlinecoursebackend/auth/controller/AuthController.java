@@ -16,17 +16,22 @@ import uz.codebyz.onlinecoursebackend.auth.service.AuthService;
 import uz.codebyz.onlinecoursebackend.auth.service.GeminiService;
 import uz.codebyz.onlinecoursebackend.common.ApiResponse;
 import uz.codebyz.onlinecoursebackend.common.ResponseDto;
+import uz.codebyz.onlinecoursebackend.course.entity.CourseStatus;
+import uz.codebyz.onlinecoursebackend.course.repository.CourseRepository;
 import uz.codebyz.onlinecoursebackend.revokedToken.entity.RevokedToken;
 import uz.codebyz.onlinecoursebackend.revokedToken.repository.RevokedTokenRepository;
 import uz.codebyz.onlinecoursebackend.security.UserPrincipal;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtAuthenticationFilter;
 import uz.codebyz.onlinecoursebackend.security.jwt.JwtService;
+import uz.codebyz.onlinecoursebackend.student.repository.StudentRepository;
 import uz.codebyz.onlinecoursebackend.user.User;
 import uz.codebyz.onlinecoursebackend.user.UserRepository;
 import uz.codebyz.onlinecoursebackend.userDevice.entity.UserDevice;
 import uz.codebyz.onlinecoursebackend.userDevice.repository.UserDeviceRepository;
 import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -39,13 +44,17 @@ public class AuthController {
     private final RevokedTokenRepository revokedTokenRepository;
     private final UserDeviceService userDeviceService;
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
+    private final CourseRepository courseRepository;
 
-    public AuthController(AuthService authService, UserDeviceRepository userDeviceRepository, RevokedTokenRepository revokedTokenRepository, UserDeviceService userDeviceService, UserRepository userRepository) {
+    public AuthController(AuthService authService, UserDeviceRepository userDeviceRepository, RevokedTokenRepository revokedTokenRepository, UserDeviceService userDeviceService, UserRepository userRepository, StudentRepository studentRepository, CourseRepository courseRepository) {
         this.authService = authService;
         this.userDeviceRepository = userDeviceRepository;
         this.revokedTokenRepository = revokedTokenRepository;
         this.userDeviceService = userDeviceService;
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
+        this.courseRepository = courseRepository;
     }
 
 
@@ -152,6 +161,17 @@ public class AuthController {
         return ResponseDto.ok("Device removed successfully");
     }
 
+    @GetMapping("get-student-and-course-count")
+    public ResponseEntity<Map<String, Integer>> getStudentAndCourseCount() {
+        int studentCount = studentRepository.findAll().size();
+        int courseSize = courseRepository.findAll().stream().filter(course -> course.getActive() && !course.getDeleted() && course.getStatus() == CourseStatus.OPEN).toList().size();
+
+        Map<String, Integer> result = new HashMap<>();
+        result.put("studentCount", studentCount);
+        result.put("courseCount", courseSize);
+
+        return ResponseEntity.ok(result);
+    }
 
     @Operation(summary = "Parolni tiklash – kod + yangi parol")
     @PostMapping("/reset-password")
