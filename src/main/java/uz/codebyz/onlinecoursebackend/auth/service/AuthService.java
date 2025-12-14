@@ -543,20 +543,27 @@ public class AuthService {
         // 🚀 5️⃣ QURILMA LIMITINI TEKSHIRAMIZ
         // ===================================================
         boolean exists = userDeviceRepository.existsByUserIdAndDeviceId(user.getId(), deviceId);
-
+        String currentIpAddress = http.getRemoteAddr();
         if (!exists) {
 
             long activeDevices = userDeviceRepository.countByUserId(user.getId());
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
-            if (activeDevices >= maxDevices) {
+
+            boolean success = true;
+            for (UserDevice userDevice : userDeviceRepository.findAllByUserId(user.getId())) {
+                if (currentIpAddress.equals(userDevice.getIpAddress())) {
+                    success = false;
+                    break;
+                }
+            }
+            if (activeDevices >= maxDevices && success) {
                 return ApiResponse.error(
                         "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
                         "DEVICE_LIMIT_REACHED",
                         userDeviceService.getDevices(user.getId(), http)
                 );
             }
-
             // Yangi qurilma qo‘shiladi
             UserDevice device = new UserDevice();
             device.setUserId(user.getId());
@@ -565,7 +572,7 @@ public class AuthService {
             device.setIpAddress(http.getRemoteAddr());
             if (device.getIpAddress() != null)
                 userDeviceRepository.save(device);
-            else return ApiResponse.error("ip adres olishda xatolik yuz berdi" , "NOT_FOUND_IP_ADDRESS");
+            else return ApiResponse.error("ip adres olishda xatolik yuz berdi", "NOT_FOUND_IP_ADDRESS");
         }
 
         // ===================================================
