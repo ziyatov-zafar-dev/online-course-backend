@@ -176,7 +176,7 @@ login:
   security:
     max-wrong-attempts: 3
   device:
-    count: 0
+    count: 1
 
 admin:
   email: ziyatovzafar98@gmail.com
