@@ -19,6 +19,7 @@ public class UserDevice {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(unique = true)
     private String deviceId;
     private String userAgent;
     @Column(nullable = false)

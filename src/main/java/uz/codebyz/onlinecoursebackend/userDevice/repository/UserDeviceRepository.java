@@ -24,8 +24,6 @@ public interface UserDeviceRepository extends JpaRepository<UserDevice, UUID> {
     @Query("DELETE FROM UserDevice ud WHERE ud.userId = :userId AND ud.deviceId = :deviceId")
     void deleteByUserIdAndDeviceId(@Param("userId") UUID userId,
                                    @Param("deviceId") String deviceId);
-
-
     Optional<UserDevice> findByUserIdAndDeviceId(UUID userId, String deviceId);
 
     Optional<UserDevice> findByDeviceId(String deviceId);
