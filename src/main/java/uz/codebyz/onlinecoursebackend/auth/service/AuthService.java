@@ -790,17 +790,37 @@ public class AuthService {
         return res;
     }
 
+    /*    public ResponseEntity<?> logout(HttpServletRequest request, UserPrincipal principal) {
+            User user = principal.getUser();
+            String token = jwtAuthenticationFilter.extractToken(request);
+            String deviceId = jwtService.extractDeviceId(request);
+            // token revoked jadvaliga qo‘shiladi
+            revokedTokenRepository.save(new RevokedToken(token));
+
+            // qurilmani o'chirish
+    //        userDeviceRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
+    //        userDeviceRepository.deleteById(device.getId());
+            return ResponseEntity.ok(ApiResponse.ok("Logged out"));
+        }*/
+    @Transactional
     public ResponseEntity<?> logout(HttpServletRequest request, UserPrincipal principal) {
+
         User user = principal.getUser();
+
         String token = jwtAuthenticationFilter.extractToken(request);
         String deviceId = jwtService.extractDeviceId(request);
 
-        // token revoked jadvaliga qo‘shiladi
+        // 1️⃣ Tokenni revoke qilish
         revokedTokenRepository.save(new RevokedToken(token));
 
-        // qurilmani o'chirish
-        userDeviceRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
+        // 2️⃣ Device ni topish
+        Optional<UserDevice> deviceOpt =
+                userDeviceRepository.findByUserIdAndDeviceId(user.getId(), deviceId);
 
+        // 3️⃣ Device ID orqali o‘chirish
+        deviceOpt.ifPresent(device -> userDeviceRepository.deleteById(device.getId()));
         return ResponseEntity.ok(ApiResponse.ok("Logged out"));
     }
+
+
 }

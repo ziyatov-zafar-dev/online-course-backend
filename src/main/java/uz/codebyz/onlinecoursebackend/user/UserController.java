@@ -106,7 +106,6 @@ public class UserController {
     }
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal UserPrincipal principal) {
-
         return authService.logout(request,principal);
     }
 
