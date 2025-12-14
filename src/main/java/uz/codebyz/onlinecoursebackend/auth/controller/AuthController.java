@@ -141,7 +141,10 @@ public class AuthController {
     @Transactional
     @DeleteMapping("/me/delete-device-for-auth-user/{deviceId}")
     public ResponseDto<?> deleteDeviceBsyAuth(@RequestParam("gmail") String gmail, @PathVariable("deviceId") String deviceId, HttpServletRequest request) {
-        Optional<User> uOp = userRepository.findByEmail(gmail);
+        Optional<User> uOp;
+        if (gmail.startsWith("@")) {
+            uOp = userRepository.findByEmail(gmail);
+        } else uOp = userRepository.findByUsername(gmail);
         if (uOp.isEmpty()) {
             return new ResponseDto<>(false, "User not found");
         }
