@@ -550,14 +550,7 @@ public class AuthService {
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
 
-            boolean success = true;
-            for (UserDevice userDevice : userDeviceRepository.findAllByUserId(user.getId())) {
-                if (currentIpAddress.equals(userDevice.getIpAddress())) {
-                    success = false;
-                    break;
-                }
-            }
-            if (activeDevices >= maxDevices && success) {
+            if (activeDevices >= maxDevices) {
                 return ApiResponse.error(
                         "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
                         "DEVICE_LIMIT_REACHED",
