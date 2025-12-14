@@ -807,20 +807,22 @@ public class AuthService {
 
         User user = principal.getUser();
 
+        // 🔐 Token va deviceId olish
         String token = jwtAuthenticationFilter.extractToken(request);
         String deviceId = jwtService.extractDeviceId(request);
 
-        // 1️⃣ Tokenni revoke qilish
+        // 1️⃣ Tokenni revoked qilish
         revokedTokenRepository.save(new RevokedToken(token));
 
-        // 2️⃣ Device ni topish
-        Optional<UserDevice> deviceOpt =
-                userDeviceRepository.findByUserIdAndDeviceId(user.getId(), deviceId);
+        // 2️⃣ Aynan shu device ni o‘chirish
+        userDeviceRepository.deleteByUserIdAndDeviceId(
+                user.getId(),
+                deviceId
+        );
 
-        // 3️⃣ Device ID orqali o‘chirish
-        deviceOpt.ifPresent(device -> userDeviceRepository.deleteById(device.getId()));
-        return ResponseEntity.ok(ApiResponse.ok("Logged out"));
+        return ResponseEntity.ok(
+                ApiResponse.ok("Logged out successfully")
+        );
     }
-
 
 }
