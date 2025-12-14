@@ -563,7 +563,8 @@ public class AuthService {
             device.setDeviceId(deviceId);
             device.setUserAgent(http.getHeader("User-Agent"));
             device.setIpAddress(http.getRemoteAddr());
-            userDeviceRepository.save(device);
+            if (device.getIpAddress() != null)
+                userDeviceRepository.save(device);
         }
 
         // ===================================================

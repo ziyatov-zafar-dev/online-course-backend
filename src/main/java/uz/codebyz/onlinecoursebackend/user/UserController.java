@@ -105,8 +105,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok("Profil rasmi yuklandi.", data));
     }
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request,
-                                    @AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal UserPrincipal principal) {
 
         return authService.logout(request,principal);
     }
