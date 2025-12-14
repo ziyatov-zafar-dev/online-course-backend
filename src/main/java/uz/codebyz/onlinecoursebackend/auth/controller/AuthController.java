@@ -108,6 +108,21 @@ public class AuthController {
     }*/
 
     @GetMapping("/my-devices-auth")
+    public ResponseDto<?> myDevices1(@RequestParam("gmail") String gmail, HttpServletRequest http) {
+        Optional<User> uOp;
+        if (gmail.startsWith("@")) {
+            uOp = userRepository.findByEmail(gmail);
+        } else {
+            uOp = userRepository.findByUsername(gmail);
+        }
+        if (uOp.isEmpty()) {
+            return new ResponseDto<>(false, "User not found");
+        }
+        User currentUser = uOp.get();
+        return ResponseDto.ok("Ok", userDeviceService.getDevices(currentUser.getId(), http));
+    }
+
+    @GetMapping("/my-devices-auth-with-login")
     public ResponseDto<?> myDevices(@RequestParam("login") String gmail, HttpServletRequest http) {
         Optional<User> uOp;
         if (gmail.startsWith("@")) {
