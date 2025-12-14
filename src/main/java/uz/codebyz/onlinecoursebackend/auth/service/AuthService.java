@@ -565,6 +565,7 @@ public class AuthService {
             device.setIpAddress(http.getRemoteAddr());
             if (device.getIpAddress() != null)
                 userDeviceRepository.save(device);
+            else return ApiResponse.error("ip adres olishda xatolik yuz berdi" , "NOT_FOUND_IP_ADDRESS");
         }
 
         // ===================================================
