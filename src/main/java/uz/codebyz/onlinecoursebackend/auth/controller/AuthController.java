@@ -108,8 +108,13 @@ public class AuthController {
     }*/
 
     @GetMapping("/my-devices-auth")
-    public ResponseDto<?> myDevices(@RequestParam("gmail") String gmail, HttpServletRequest http) {
-        Optional<User> uOp = userRepository.findByEmail(gmail);
+    public ResponseDto<?> myDevices(@RequestParam("login") String gmail, HttpServletRequest http) {
+        Optional<User> uOp;
+        if (gmail.startsWith("@")) {
+            uOp = userRepository.findByEmail(gmail);
+        } else {
+            uOp = userRepository.findByUsername(gmail);
+        }
         if (uOp.isEmpty()) {
             return new ResponseDto<>(false, "User not found");
         }
@@ -154,7 +159,6 @@ public class AuthController {
             revoked.setToken(token);
             revokedTokenRepository.save(revoked);
         }
-
         // 🔥 4. Device’ni o‘chiramiz
         userDeviceRepository.deleteById(device.getId());
 
@@ -165,7 +169,6 @@ public class AuthController {
     public ResponseEntity<Map<String, Integer>> getStudentAndCourseCount() {
         int studentCount = studentRepository.findAll().size();
         int courseSize = courseRepository.findAll().stream().filter(course -> course.getActive() && !course.getDeleted() && course.getStatus() == CourseStatus.OPEN).toList().size();
-
         Map<String, Integer> result = new HashMap<>();
         result.put("studentCount", studentCount);
         result.put("courseCount", courseSize);
