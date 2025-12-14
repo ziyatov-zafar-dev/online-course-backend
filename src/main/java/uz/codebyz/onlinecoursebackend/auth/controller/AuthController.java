@@ -33,6 +33,7 @@ import uz.codebyz.onlinecoursebackend.userDevice.service.UserDeviceService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -209,5 +210,10 @@ public class AuthController {
         ApiResponse<Object> response = authService.validateUsername(username, principal != null ? principal.getUser() : null);
         HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
+    }
+
+    @DeleteMapping("delete-profile-image/{imageId}")
+    public ResponseEntity<ResponseDto<?>> deleteProfileImage(@PathVariable("imageId") UUID profileImageId) {
+        return ResponseEntity.ok(authService.deleteProfileImage(profileImageId));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.codebyz.onlinecoursebackend.auth.dto.*;
 import uz.codebyz.onlinecoursebackend.common.ApiResponse;
+import uz.codebyz.onlinecoursebackend.common.ResponseDto;
 import uz.codebyz.onlinecoursebackend.device_login_attempts.entity.DeviceLoginAttempt;
 import uz.codebyz.onlinecoursebackend.device_login_attempts.repository.DeviceLoginAttemptRepository;
 import uz.codebyz.onlinecoursebackend.email.EmailService;
@@ -34,6 +35,7 @@ import uz.codebyz.onlinecoursebackend.verification.VerificationType;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -41,6 +43,7 @@ public class AuthService {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RevokedTokenRepository revokedTokenRepository;
+    private final UserProfileImageRepository userProfileImageRepository;
     @Value("${login.security.max-wrong-attempts}")
     private int maxWrongAttempts;
 
@@ -59,7 +62,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        VerificationService verificationService,
                        EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository, TelegramNotificationService telegramNotificationService) {
+                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository, TelegramNotificationService telegramNotificationService, UserProfileImageRepository userProfileImageRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
@@ -72,6 +75,7 @@ public class AuthService {
         this.deviceLoginAttemptRepository = deviceLoginAttemptRepository;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.revokedTokenRepository = revokedTokenRepository;
+        this.userProfileImageRepository = userProfileImageRepository;
     }
 
 
@@ -538,7 +542,7 @@ public class AuthService {
 
         Optional<UserDevice> udOp = userDeviceRepository.findByDeviceId(deviceId);
         if (udOp.isPresent()) {
-            return ApiResponse.error("Berilgan deviceId tizimda allaqachon mavjud"
+            return ApiResponse.error("Kechirasiz, siz ushbu qurilma orqali royxatdan"
                     , "DUPLICATION_DEVICE");
         }
         // 4️⃣ TO‘G‘RI VERIFICATION → BLOK RESET
@@ -548,12 +552,10 @@ public class AuthService {
         // 🚀 5️⃣ QURILMA LIMITINI TEKSHIRAMIZ
         // ===================================================
         boolean exists = userDeviceRepository.existsByUserIdAndDeviceId(user.getId(), deviceId);
-        String currentIpAddress = http.getRemoteAddr();
         if (!exists) {
 
             long activeDevices = userDeviceRepository.countByUserId(user.getId());
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
-
 
             if (activeDevices >= maxDevices) {
                 return ApiResponse.error(
@@ -570,7 +572,8 @@ public class AuthService {
             device.setIpAddress(http.getRemoteAddr());
             if (device.getIpAddress() != null)
                 userDeviceRepository.save(device);
-            else return ApiResponse.error("ip adres olishda xatolik yuz berdi", "NOT_FOUND_IP_ADDRESS");
+            else return ApiResponse.error("ip adres olishda xatolik yuz berdi",
+                    "NOT_FOUND_IP_ADDRESS");
         }
 
         // ===================================================
@@ -742,6 +745,11 @@ public class AuthService {
             return ApiResponse.error("Bu username band.", "USERNAME_ALREADY_EXISTS");
         }
         return ApiResponse.ok("Username yaroqli.");
+    }
+
+    public ResponseDto<?> deleteProfileImage(UUID profileImageId) {
+        userProfileImageRepository.deleteById(profileImageId);
+        return new ResponseDto<>(true, "Muvaffaqiyatli o'chirildi");
     }
 
 
