@@ -57,7 +57,7 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
 server:
-  port: 8080
+  port: 8094
   forward-headers-strategy: framework
 
 jwt:
