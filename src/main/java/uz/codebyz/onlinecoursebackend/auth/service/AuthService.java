@@ -538,7 +538,11 @@ public class AuthService {
 
         Optional<UserDevice> udOp = userDeviceRepository.findByDeviceId(deviceId);
         if (udOp.isPresent()) {
-            return ApiResponse.error("Kechirasiz, siz ushbu qurilma orqali royxatdan", "DUPLICATION_DEVICE");
+            String access = jwtService.generateAccessToken(user);
+            String refresh = jwtService.generateRefreshToken(user);
+            AuthTokensResponse authTokensResponse = new AuthTokensResponse(access, refresh, mapUser(user));
+            authTokensResponse.setDevices(userDeviceService.getDevices(user.getId(), http));
+            return new ApiResponse<>(true, "Succcess", "DEVICE_LIMIT_REACHED", authTokensResponse);
         }
         // 4️⃣ TO‘G‘RI VERIFICATION → BLOK RESET
         resetAttempts(deviceId);
@@ -553,7 +557,7 @@ public class AuthService {
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
             if (activeDevices >= maxDevices) {
-                return ApiResponse.error("Kechirasiz, maksimal qurilmalar soniga yetib bolgan","MAX_DEVICE_COUNT_EXCEEDED") ;
+                return ApiResponse.error("Kechirasiz, maksimal qurilmalar soniga yetib bolgan", "MAX_DEVICE_COUNT_EXCEEDED");
             } else if (activeDevices >= maxDevices - 1) {
 
                 String access = jwtService.generateAccessToken(user);
