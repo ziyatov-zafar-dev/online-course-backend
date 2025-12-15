@@ -34,6 +34,7 @@ import uz.codebyz.onlinecoursebackend.verification.VerificationType;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -508,6 +509,46 @@ public class AuthService {
 //                new AuthTokensResponse(access, refresh, mapUser(user))
 //        );
 //    }
+
+    /*static class T {
+        private String accessToken;
+        private String refreshToken;
+        private UserResponse user;
+        private List<UserDevice> devices;
+
+        public String getAccessToken() {
+            return accessToken;
+        }
+
+        public void setAccessToken(String accessToken) {
+            this.accessToken = accessToken;
+        }
+
+        public String getRefreshToken() {
+            return refreshToken;
+        }
+
+        public void setRefreshToken(String refreshToken) {
+            this.refreshToken = refreshToken;
+        }
+
+        public UserResponse getUser() {
+            return user;
+        }
+
+        public void setUser(UserResponse user) {
+            this.user = user;
+        }
+
+        public List<UserDevice> getDevices() {
+            return devices;
+        }
+
+        public void setDevices(List<UserDevice> devices) {
+            this.devices = devices;
+        }
+    }*/
+
     @Transactional
     public ApiResponse<?> verifySignIn(SignInVerifyRequest request, HttpServletRequest http) {
 
@@ -558,10 +599,22 @@ public class AuthService {
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
             if (activeDevices >= maxDevices) {
-                return ApiResponse.error(
+
+                String access = jwtService.generateAccessToken(user);
+                String refresh = jwtService.generateRefreshToken(user);
+/*
+                return ApiResponse.ok(
                         "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
                         "DEVICE_LIMIT_REACHED",
                         userDeviceService.getDevices(user.getId(), http)
+                );
+*/
+                AuthTokensResponse authTokensResponse = new AuthTokensResponse(access, refresh, mapUser(user));
+                authTokensResponse.setDevices(userDeviceService.getDevices(user.getId(), http));
+                return new ApiResponse<>(
+                        true, "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
+                        "DEVICE_LIMIT_REACHED",
+                        authTokensResponse
                 );
             }
             // Yangi qurilma qo‘shiladi
@@ -581,7 +634,6 @@ public class AuthService {
         // ===================================================
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
-
         return new ApiResponse<>(
                 true,
                 "Muvaffaqiyatli tizimga kirdingiz.",

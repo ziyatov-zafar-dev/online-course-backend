@@ -64,7 +64,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         try {
             OAuth2User principal = (OAuth2User) authentication.getPrincipal();
             String email = principal != null ? (String) principal.getAttributes().get("email") : null;
-
             if (email == null) {
                 throw new OAuth2AuthenticationException(new OAuth2Error("email_not_found"),
                         "Email topilmadi. Avval ro‘yxatdan o‘ting.");
@@ -110,7 +109,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
                     String redirectUrl = frontendBaseUrl
                             + "/google-auth-error"
-                            + "?error=MAX_DEVICE_LIMIT_REACHED";
+                            + "?error=MAX_DEVICE_LIMIT_REACHED"
+                            + "?email=" + email;
                     response.setStatus(HttpServletResponse.SC_FOUND);
                     response.setHeader("Location", redirectUrl);
                     return;

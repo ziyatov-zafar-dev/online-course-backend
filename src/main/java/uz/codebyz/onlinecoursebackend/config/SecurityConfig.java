@@ -69,6 +69,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**", "/api/payme/**").hasRole("ADMIN")
                         .requestMatchers("/api/teacher/**", "/api/payme/**").hasRole("TEACHER")
                         .requestMatchers("/api/payme/**").hasRole("STUDENT")
+                        .requestMatchers("/api/chats/**").hasAnyRole("STUDENT" , "TEACHER","ADMIN")
+                        .requestMatchers("/api/messages/**").hasAnyRole("STUDENT" , "TEACHER","ADMIN")
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)
