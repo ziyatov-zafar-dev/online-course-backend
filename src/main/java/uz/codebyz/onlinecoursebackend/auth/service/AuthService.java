@@ -59,11 +59,7 @@ public class AuthService {
     private final UserDeviceService userDeviceService;
     private final DeviceLoginAttemptRepository deviceLoginAttemptRepository;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       VerificationService verificationService,
-                       EmailService emailService,
-                       JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository, TelegramNotificationService telegramNotificationService, UserProfileImageRepository userProfileImageRepository) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, VerificationService verificationService, EmailService emailService, JwtService jwtService, UserProfileRepository userProfileRepository, UserDeviceRepository userDeviceRepository, MaxDeviceRepository maxDeviceRepository, UserDeviceService userDeviceService, DeviceLoginAttemptRepository deviceLoginAttemptRepository, JwtAuthenticationFilter jwtAuthenticationFilter, RevokedTokenRepository revokedTokenRepository, TelegramNotificationService telegramNotificationService, UserProfileImageRepository userProfileImageRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
@@ -123,19 +119,13 @@ public class AuthService {
         if (blockCheck != null) return blockCheck;
 
         // 2) USERNI TOPAMIZ
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    handleWrongPassword(deviceId);
-                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
-                });
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
+            handleWrongPassword(deviceId);
+            return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+        });
 
         // 3) KODNI TEKSHIRISH
-        Optional<VerificationCode> valid = verificationService.validateCode(
-                user,
-                VerificationType.SIGN_UP,
-                request.getCode(),
-                null
-        );
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_UP, request.getCode(), null);
 
         if (valid.isEmpty()) {
             handleWrongPassword(deviceId);
@@ -208,62 +198,39 @@ public class AuthService {
         // 2) USERNI TOPAMIZ
         User user;
         try {
-            user = findByLogin(request.getLogin())
-                    .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+            user = findByLogin(request.getLogin()).orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
         } catch (BadCredentialsException ex) {
             handleWrongPassword(deviceId);
-            return new SignInResult(
-                    ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"),
-                    HttpStatus.UNAUTHORIZED
-            );
+            return new SignInResult(ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"), HttpStatus.UNAUTHORIZED);
         }
 
         // 3) Tasdiqlanmagan bo‘lsa
         if (!user.isEnabled()) {
-            return new SignInResult(
-                    ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED"),
-                    HttpStatus.BAD_REQUEST
-            );
+            return new SignInResult(ApiResponse.error("Akkount tasdiqlanmagan.", "ACCOUNT_NOT_VERIFIED"), HttpStatus.BAD_REQUEST);
         }
 
         // 4) Parol tekshirish
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             handleWrongPassword(deviceId);
 
-            return new SignInResult(
-                    ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"),
-                    HttpStatus.UNAUTHORIZED
-            );
+            return new SignInResult(ApiResponse.error("Login yoki parol noto‘g‘ri.", "BAD_CREDENTIALS"), HttpStatus.UNAUTHORIZED);
         }
 
         // 5) User bloklangan bo‘lsa
         if (user.getStatus() == UserStatus.BLOCKED) {
-            return new SignInResult(
-                    ApiResponse.error("Akkount bloklangan.", "ACCOUNT_BLOCKED"),
-                    HttpStatus.FORBIDDEN
-            );
+            return new SignInResult(ApiResponse.error("Akkount bloklangan.", "ACCOUNT_BLOCKED"), HttpStatus.FORBIDDEN);
         }
 
         // 6) TO‘G‘RI LOGIN → RESET
         resetAttempts(deviceId);
 
         // 7) EMAILGA VERIFICATION CODE
-        VerificationCode code = verificationService.createVerification(
-                user, VerificationType.SIGN_IN, null
-        );
+        VerificationCode code = verificationService.createVerification(user, VerificationType.SIGN_IN, null);
 
 
-        emailService.sendEmail(
-                user.getEmail(),
-                "Kirish kodi",
-                "Kirishni tasdiqlang.",
-                code.getCode()
-        );
+        emailService.sendEmail(user.getEmail(), "Kirish kodi", "Kirishni tasdiqlang.", code.getCode());
 
-        return new SignInResult(
-                ApiResponse.ok("Kirishni tasdiqlash kodi yuborildi."),
-                HttpStatus.OK
-        );
+        return new SignInResult(ApiResponse.ok("Kirishni tasdiqlash kodi yuborildi."), HttpStatus.OK);
     }
 
 
@@ -294,9 +261,7 @@ public class AuthService {
     }
 
     private void resetAttempts(String deviceId) {
-        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
-                .findByDeviceId(deviceId)
-                .orElse(null);
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository.findByDeviceId(deviceId).orElse(null);
         if (attempt != null) {
             attempt.setAttempts(0);
             attempt.setBlockedUntil(null);
@@ -306,9 +271,7 @@ public class AuthService {
 
     private void handleWrongPassword(String deviceId) {
 
-        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
-                .findByDeviceId(deviceId)
-                .orElse(null);
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository.findByDeviceId(deviceId).orElse(null);
 
         if (attempt == null) {
             attempt = new DeviceLoginAttempt();
@@ -341,9 +304,7 @@ public class AuthService {
 
     private ApiResponse<?> checkDeviceBlocked(String deviceId) {
 
-        DeviceLoginAttempt attempt = deviceLoginAttemptRepository
-                .findByDeviceId(deviceId)
-                .orElse(null);
+        DeviceLoginAttempt attempt = deviceLoginAttemptRepository.findByDeviceId(deviceId).orElse(null);
 
         if (attempt != null && attempt.getBlockedUntil() != null) {
             if (attempt.getBlockedUntil().isAfter(CurrentTime.currentTime())) {
@@ -367,10 +328,7 @@ public class AuthService {
                     message = secs + " sekund qoldi.";
                 }
 
-                return ApiResponse.error(
-                        "Ushbu qurilma vaqtincha bloklangan. Kutish vaqti: " + message,
-                        "DEVICE_BLOCKED"
-                );
+                return ApiResponse.error("Ushbu qurilma vaqtincha bloklangan. Kutish vaqti: " + message, "DEVICE_BLOCKED");
 
             }
         }
@@ -567,14 +525,11 @@ public class AuthService {
                 });
 */
 
-        User user = findByLogin(request.getLogin())
-                .orElseThrow(() -> {
-                    handleWrongPassword(deviceId);
-                    return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
-                });
-        Optional<VerificationCode> valid = verificationService.validateCode(
-                user, VerificationType.SIGN_IN, request.getCode(), null
-        );
+        User user = findByLogin(request.getLogin()).orElseThrow(() -> {
+            handleWrongPassword(deviceId);
+            return new BadCredentialsException("Login yoki parol noto‘g‘ri.");
+        });
+        Optional<VerificationCode> valid = verificationService.validateCode(user, VerificationType.SIGN_IN, request.getCode(), null);
 
         if (valid.isEmpty()) {
             handleWrongPassword(deviceId);
@@ -583,8 +538,7 @@ public class AuthService {
 
         Optional<UserDevice> udOp = userDeviceRepository.findByDeviceId(deviceId);
         if (udOp.isPresent()) {
-            return ApiResponse.error("Kechirasiz, siz ushbu qurilma orqali royxatdan"
-                    , "DUPLICATION_DEVICE");
+            return ApiResponse.error("Kechirasiz, siz ushbu qurilma orqali royxatdan", "DUPLICATION_DEVICE");
         }
         // 4️⃣ TO‘G‘RI VERIFICATION → BLOK RESET
         resetAttempts(deviceId);
@@ -598,7 +552,7 @@ public class AuthService {
             long activeDevices = userDeviceRepository.countByUserId(user.getId());
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
-            if (activeDevices >= maxDevices) {
+            if (activeDevices >= maxDevices - 1) {
 
                 String access = jwtService.generateAccessToken(user);
                 String refresh = jwtService.generateRefreshToken(user);
@@ -611,11 +565,18 @@ public class AuthService {
 */
                 AuthTokensResponse authTokensResponse = new AuthTokensResponse(access, refresh, mapUser(user));
                 authTokensResponse.setDevices(userDeviceService.getDevices(user.getId(), http));
-                return new ApiResponse<>(
-                        true, "Kirish rad etildi. Siz faqat " + maxDevices + " ta qurilmada ishlata olasiz.",
-                        "DEVICE_LIMIT_REACHED",
-                        authTokensResponse
-                );
+                UserDevice device = new UserDevice();
+                device.setUserId(user.getId());
+                device.setDeviceId(deviceId);
+                device.setUserAgent(http.getHeader("User-Agent"));
+                device.setIpAddress(http.getRemoteAddr());
+                if (device.getIpAddress() != null) userDeviceRepository.save(device);
+                else return ApiResponse.error("ip adres olishda xatolik yuz berdi", "NOT_FOUND_IP_ADDRESS");
+                return new ApiResponse<>(true,
+
+                        "Maksimal qurilmalar soni (%d taga )ga yettingiz quyidagi qurilmalardan birini o'chirishingiz kerak".formatted(maxDevices)
+
+                        , "DEVICE_LIMIT_REACHED", authTokensResponse);
             }
             // Yangi qurilma qo‘shiladi
             UserDevice device = new UserDevice();
@@ -623,10 +584,8 @@ public class AuthService {
             device.setDeviceId(deviceId);
             device.setUserAgent(http.getHeader("User-Agent"));
             device.setIpAddress(http.getRemoteAddr());
-            if (device.getIpAddress() != null)
-                userDeviceRepository.save(device);
-            else return ApiResponse.error("ip adres olishda xatolik yuz berdi",
-                    "NOT_FOUND_IP_ADDRESS");
+            if (device.getIpAddress() != null) userDeviceRepository.save(device);
+            else return ApiResponse.error("ip adres olishda xatolik yuz berdi", "NOT_FOUND_IP_ADDRESS");
         }
 
         // ===================================================
@@ -634,12 +593,7 @@ public class AuthService {
         // ===================================================
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
-        return new ApiResponse<>(
-                true,
-                "Muvaffaqiyatli tizimga kirdingiz.",
-                null,
-                new AuthTokensResponse(access, refresh, mapUser(user))
-        );
+        return new ApiResponse<>(true, "Muvaffaqiyatli tizimga kirdingiz.", null, new AuthTokensResponse(access, refresh, mapUser(user)));
     }
 
     public ApiResponse<AuthTokensResponse> refreshToken(RefreshTokenRequest request) {
@@ -665,8 +619,7 @@ public class AuthService {
 
     @Transactional
     public ApiResponse<Object> resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new BadCredentialsException("Login yoki parol noto‘g‘ri."));
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             return ApiResponse.error("Parollar mos kelmadi.", "PASSWORDS_NOT_MATCH");
         }
@@ -767,9 +720,7 @@ public class AuthService {
     }
 
     private boolean hasSocials(UpdateProfileRequest request) {
-        return request.getWebsite() != null || request.getTelegram() != null || request.getGithub() != null
-                || request.getLinkedin() != null || request.getTwitter() != null
-                || request.getFacebook() != null || request.getInstagram() != null;
+        return request.getWebsite() != null || request.getTelegram() != null || request.getGithub() != null || request.getLinkedin() != null || request.getTwitter() != null || request.getFacebook() != null || request.getInstagram() != null;
     }
 
     public ApiResponse<UserResponse> getMe(User user) {
@@ -873,14 +824,9 @@ public class AuthService {
         revokedTokenRepository.save(new RevokedToken(token));
 
         // 2️⃣ Aynan shu device ni o‘chirish
-        userDeviceRepository.deleteByUserIdAndDeviceId(
-                user.getId(),
-                deviceId
-        );
+        userDeviceRepository.deleteByUserIdAndDeviceId(user.getId(), deviceId);
 
-        return ResponseEntity.ok(
-                ApiResponse.ok("Logged out successfully")
-        );
+        return ResponseEntity.ok(ApiResponse.ok("Logged out successfully"));
     }
 
 }

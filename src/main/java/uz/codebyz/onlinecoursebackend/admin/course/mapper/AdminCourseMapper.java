@@ -49,7 +49,7 @@ public class AdminCourseMapper {
         dto.setImgSizeMB(FileHelper.getFileSize(course.getImgSize()));
 //        try {
 //        } catch (Exception e) {
-//            dto.setImgSizeMB("0");
+//            dto.setFileSizeMB("0");
 //        }
         dto.setPromoCourseVideoFileSizeMB(FileHelper.getFileSize(course.getPromoCourseVideoFileSize()));
 //        try {

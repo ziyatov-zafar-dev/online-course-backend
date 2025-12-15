@@ -79,8 +79,8 @@ public class AdminCourseServiceImpl implements AdminCourseService {
 //        UploadFileResponseDto savedVideo = checkUploadVideo.getData();
 //        UploadFileResponseDto savedImage = checkUploadImage.getData();
 //
-//        course.setImgName(savedImage.getFileName());
-//        course.setImgUrl(savedImage.getFileUrl());
+//        course.setFileName(savedImage.getFileName());
+//        course.setFileUrl(savedImage.getFileUrl());
 //        course.setImgSize(savedImage.getFileSize());
 //        course.setPromoCourseVideoFileName(savedVideo.getFileName());
 //        course.setPromoCourseVideoUrl(savedVideo.getFileUrl());

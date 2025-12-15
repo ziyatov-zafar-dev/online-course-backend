@@ -1,8 +1,10 @@
-package uz.codebyz.onlinecoursebackend.message;
+package uz.codebyz.onlinecoursebackend.message.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "chats")
@@ -13,14 +15,24 @@ public class Chat {
     private UUID id;
     private UUID user1Id;
     private UUID user2Id;
-    private Boolean active;
+    private Boolean deleted = false;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Message> messages;
 
-    public Boolean getActive() {
-        return active;
+    public Boolean getDeleted() {
+        return deleted;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public List<Message> getMessages() {
+        return messages.stream().filter(Message::getActive).collect(Collectors.toList());
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
     }
 
     public UUID getId() {
