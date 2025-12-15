@@ -82,7 +82,7 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 frontend:
-  base-url: ${FRONTEND}
+  base-url: http://localhost:5173
 
 user:
   profile:
@@ -131,7 +131,7 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
-  server-url: ${BACKEND_URL}
+  server-url: http://localhost:8080
 
 swagger:
   title: "CodeByZ Online Course API"

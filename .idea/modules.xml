@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/onlinecoursebackend.iml" filepath="$PROJECT_DIR$/onlinecoursebackend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/codebyz-auth-users.iml" filepath="$PROJECT_DIR$/codebyz-auth-users.iml" />
     </modules>
   </component>
 </project>
