@@ -131,7 +131,7 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
-  server-url: http://localhost:8080
+  server-url: ${BACKEND_URL}
 
 swagger:
   title: "CodeByZ Online Course API"

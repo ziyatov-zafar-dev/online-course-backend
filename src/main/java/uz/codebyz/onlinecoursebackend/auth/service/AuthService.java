@@ -552,7 +552,9 @@ public class AuthService {
             long activeDevices = userDeviceRepository.countByUserId(user.getId());
             int maxDevices = maxDeviceRepository.getMaxDeviceCount().getDeviceCount();
 
-            if (activeDevices >= maxDevices - 1) {
+            if (activeDevices >= maxDevices) {
+                return ApiResponse.error("Kechirasiz, maksimal qurilmalar soniga yetib bolgan","MAX_DEVICE_COUNT_EXCEEDED") ;
+            } else if (activeDevices >= maxDevices - 1) {
 
                 String access = jwtService.generateAccessToken(user);
                 String refresh = jwtService.generateRefreshToken(user);
